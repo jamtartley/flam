@@ -134,6 +134,36 @@ test("Tokenizer generates parens inside tags", () => {
 	]);
 });
 
+test("Tokenizer ignores parens outside tags", () => {
+	const tokenizer = new Tokenizer("Hello (world)").tokenize();
+
+	expectTokenKinds(tokenizer.tokens, ["RAW", "EOF"]);
+});
+
+test("Tokenizer ignores periods outside tags", () => {
+	const tokenizer = new Tokenizer("Hello. World.").tokenize();
+
+	expectTokenKinds(tokenizer.tokens, ["RAW", "EOF"]);
+});
+
+test("Tokenizer generates periods inside tags", () => {
+	const tokenizer = new Tokenizer('{= name.first |> join(",") =}').tokenize();
+
+	expectTokenKinds(tokenizer.tokens, [
+		"TEMPLATE_START",
+		"LITERAL_IDENTIFIER",
+		"PERIOD",
+		"LITERAL_IDENTIFIER",
+		"OP_PIPE",
+		"LITERAL_IDENTIFIER",
+		"L_PAREN",
+		"LITERAL_STRING",
+		"R_PAREN",
+		"TEMPLATE_END",
+		"EOF",
+	]);
+});
+
 test("Tokenizer handles literal numbers inside tags", () => {
 	const tokenizer = new Tokenizer("{= 123 =}").tokenize();
 
