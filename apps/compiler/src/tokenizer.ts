@@ -3,6 +3,8 @@ export type TokenKind =
 	| "LITERAL_IDENTIFIER"
 	| "LITERAL_STRING"
 	| "LITERAL_NUMBER"
+	| "CONTROL_START"
+	| "CONTROL_END"
 	| "TEMPLATE_START"
 	| "TEMPLATE_END"
 	| "OP_PIPE"
@@ -32,6 +34,12 @@ export type Token = {
 
 const _0 = "0".charCodeAt(0);
 const _9 = "9".charCodeAt(0);
+
+const TEMPLATE_START = "{=";
+const TEMPLATE_END = "=}";
+
+const CONTROL_START = "{%";
+const CONTROL_END = "%}";
 
 export class Tokenizer {
 	#index: number = 0;
@@ -121,11 +129,28 @@ export class Tokenizer {
 		this.#advance();
 	}
 
-	#tokenizeTemplate(): void {
-		this.#append("TEMPLATE_START", "{=", { ...this.#site });
+	#tokenizeControl(): void {
+		this.#append("CONTROL_START", CONTROL_START, { ...this.#site });
 		this.#advance(2);
 
-		while (this.#current(2) !== "=}" && this.#index < this.fileContents.length) {
+		this.#tokenizeExpression(CONTROL_END);
+
+		this.#append("CONTROL_END", CONTROL_END, { ...this.#site });
+		this.#advance(2);
+	}
+
+	#tokenizeTemplate(): void {
+		this.#append("TEMPLATE_START", TEMPLATE_START, { ...this.#site });
+		this.#advance(2);
+
+		this.#tokenizeExpression(TEMPLATE_END);
+
+		this.#append("TEMPLATE_END", TEMPLATE_END, { ...this.#site });
+		this.#advance(2);
+	}
+
+	#tokenizeExpression(endTag: string): void {
+		while (this.#current(endTag.length) !== endTag && this.#index < this.fileContents.length) {
 			const site = { ...this.#site };
 
 			switch (this.#current()) {
@@ -202,22 +227,16 @@ export class Tokenizer {
 					continue;
 			}
 		}
-
-		this.#append("TEMPLATE_END", "=}", { ...this.#site });
-		this.#advance(2);
 	}
 
 	public tokenize(): Tokenizer {
 		while (this.#index < this.fileContents.length) {
-			switch (this.#current()) {
-				case "{":
-					if (this.#next() === "=") {
-						this.#tokenizeTemplate();
-						continue;
-					}
-				default:
-					this.#tokenizeRaw();
-					continue;
+			if (this.#current(2) === TEMPLATE_START) {
+				this.#tokenizeTemplate();
+			} else if (this.#current(2) === CONTROL_START) {
+				this.#tokenizeControl();
+			} else {
+				this.#tokenizeRaw();
 			}
 		}
 
