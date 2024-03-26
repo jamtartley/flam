@@ -1,0 +1,3 @@
+{
+  "extends": "@flam/typescript-config/base.json"
+}
