@@ -1,0 +1,21 @@
+{
+  "name": "flam",
+  "private": true,
+  "scripts": {
+    "dev:start": "turbo dev:start",
+    "dev:test": "turbo dev:test",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "@flam/eslint-config": "workspace:*",
+    "@flam/typescript-config": "workspace:*",
+    "prettier": "^3.2.5",
+    "turbo": "latest"
+  },
+  "packageManager": "pnpm@8.9.0",
+  "engines": {
+    "node": ">=18"
+  }
+}
