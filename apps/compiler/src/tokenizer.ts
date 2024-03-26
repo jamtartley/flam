@@ -9,6 +9,7 @@ export type TokenKind =
 	| "TEMPLATE_END"
 	| "L_PAREN"
 	| "R_PAREN"
+	| "PERIOD"
 	| "OP_PIPE"
 	| "OP_ASSIGN"
 	| "OP_EQ"
@@ -193,6 +194,10 @@ export class Tokenizer {
 					continue;
 				case ")":
 					this.#append("R_PAREN", ")", site);
+					this.#advance();
+					continue;
+				case ".":
+					this.#append("PERIOD", ".", site);
 					this.#advance();
 					continue;
 				case ">":
