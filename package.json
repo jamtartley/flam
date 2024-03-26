@@ -1,21 +1,31 @@
 {
-  "name": "flam",
-  "private": true,
-  "scripts": {
-    "dev:start": "turbo dev:start",
-    "dev:test": "turbo dev:test",
-    "build": "turbo build",
-    "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
-  },
-  "devDependencies": {
-    "@flam/eslint-config": "workspace:*",
-    "@flam/typescript-config": "workspace:*",
-    "prettier": "^3.2.5",
-    "turbo": "latest"
-  },
-  "packageManager": "pnpm@8.9.0",
-  "engines": {
-    "node": ">=18"
-  }
+	"name": "flam",
+	"private": true,
+	"packageManager": "pnpm@8.15.2",
+	"engines": {
+		"node": "20.11.1"
+	},
+	"scripts": {
+		"dev:start": "turbo dev:start",
+		"dev:test": "turbo dev:test",
+		"build": "turbo build",
+		"lint": "turbo lint",
+		"format": "prettier --write \"**/*.{ts,tsx,md}\"",
+		"prepare": "husky"
+	},
+	"devDependencies": {
+		"@commitlint/cli": "^19.2.1",
+		"@commitlint/config-conventional": "^19.1.0",
+		"@commitlint/prompt": "^19.2.0",
+		"@flam/eslint-config": "workspace:*",
+		"@flam/typescript-config": "workspace:*",
+		"husky": "^9.0.11",
+		"lint-staged": "^15.2.2",
+		"prettier": "^3.2.5",
+		"turbo": "latest"
+	},
+	"lint-staged": {
+		"*.{js,jsx,ts,tsx}": "eslint --cache --fix",
+		"*.{js,jsx,ts,tsx,css,md,json}": "prettier --write"
+	}
 }
