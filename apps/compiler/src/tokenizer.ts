@@ -7,6 +7,8 @@ export type TokenKind =
 	| "CONTROL_END"
 	| "TEMPLATE_START"
 	| "TEMPLATE_END"
+	| "L_PAREN"
+	| "R_PAREN"
 	| "OP_PIPE"
 	| "OP_ASSIGN"
 	| "OP_EQ"
@@ -183,6 +185,14 @@ export class Tokenizer {
 					continue;
 				case "/":
 					this.#append("OP_DIVIDE", "/", site);
+					this.#advance();
+					continue;
+				case "(":
+					this.#append("L_PAREN", "(", site);
+					this.#advance();
+					continue;
+				case ")":
+					this.#append("R_PAREN", ")", site);
 					this.#advance();
 					continue;
 				case ">":
