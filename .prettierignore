@@ -1,0 +1,10 @@
+.env
+.next
+cypress/screenshots
+cypress/videos
+build
+node_modules
+postgres-data
+public/build
+infrastructure
+.pnpm-store
