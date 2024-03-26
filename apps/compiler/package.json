@@ -4,8 +4,8 @@
 	"description": "",
 	"main": "dist/index.js",
 	"scripts": {
-		"ci:build": "esbuild",
-		"ci:lint": "eslint - ./src/**/*.ts",
+		"ci:build": "esbuild src/index.ts",
+		"ci:lint": "eslint ./src/**/*.ts",
 		"ci:test": "node --test --require ts-node/register ./src/**",
 		"ci:start": "node build/index.js",
 		"ci:typecheck": "tsc --noEmit",
@@ -20,6 +20,7 @@
 		"esbuild": "^0.20.2",
 		"eslint": "^8.57.0",
 		"nodemon": "^3.1.0",
-		"ts-node": "^10.9.2"
+		"ts-node": "^10.9.2",
+		"typescript": "^5.3.3"
 	}
 }
