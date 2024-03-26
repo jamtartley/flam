@@ -4,14 +4,21 @@
 	"description": "",
 	"main": "dist/index.js",
 	"scripts": {
+		"ci:build": "esbuild",
+		"ci:lint": "eslint - ./src/**/*.ts",
+		"ci:test": "node --test --require ts-node/register ./src/**",
+		"ci:start": "node build/index.js",
+		"ci:typecheck": "tsc --noEmit",
 		"dev:start": "nodemon src/index.ts",
-		"dev:test": "nodemon --exec node --test --require ts-node/register ./src/tokenizer.test.ts"
+		"dev:test": "nodemon --exec node --test --require ts-node/register ./src/**"
 	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"devDependencies": {
 		"@types/node": "^20.11.30",
+		"esbuild": "^0.20.2",
+		"eslint": "^8.57.0",
 		"nodemon": "^3.1.0",
 		"ts-node": "^10.9.2"
 	}
