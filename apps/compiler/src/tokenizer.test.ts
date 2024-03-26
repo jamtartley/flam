@@ -48,6 +48,39 @@ test("Tokenizer generates both raw and valid template tokens", () => {
 	expectTokenKinds(tokenizer.tokens, ["RAW", "TEMPLATE_START", "LITERAL_IDENTIFIER", "TEMPLATE_END", "RAW", "EOF"]);
 });
 
+test("Tokenizer generates no tokens for comments and advances", () => {
+	const tokenizer = new Tokenizer(`
+		{# The following people are mutineers: #}
+		Cameron Howe
+		Donna Clark
+`).tokenize();
+
+	expectTokenKinds(tokenizer.tokens, ["RAW", "RAW", "EOF"]);
+});
+
+test("Tokenizer generates no tokens for comments embedded in control block", () => {
+	const tokenizer = new Tokenizer(`
+		{% if name %}
+		{# The following people are mutineers: #}
+		{% fi %}
+`).tokenize();
+
+	expectTokenKinds(tokenizer.tokens, [
+		"RAW",
+		"CONTROL_START",
+		"LITERAL_IDENTIFIER",
+		"LITERAL_IDENTIFIER",
+		"CONTROL_END",
+		"RAW",
+		"RAW",
+		"CONTROL_START",
+		"LITERAL_IDENTIFIER",
+		"CONTROL_END",
+		"RAW",
+		"EOF",
+	]);
+});
+
 test("Tokenizer handles literal strings inside template", () => {
 	const tokenizer = new Tokenizer('Hello, {= "Hello" =}').tokenize();
 
