@@ -1,4 +1,4 @@
-type TokenKind =
+export type TokenKind =
 	| "RAW"
 	| "LITERAL_IDENTIFIER"
 	| "LITERAL_STRING"
@@ -7,13 +7,21 @@ type TokenKind =
 	| "OP_PIPE"
 	| "EOF";
 
-type Token = {
+type TokenSite = {
+	line: number;
+	col: number;
+};
+
+export type Token = {
 	kind: TokenKind;
 	value: string;
+	site: TokenSite;
 };
 
 export class Tokenizer {
-	#index = 0;
+	#index: number = 0;
+	#site: TokenSite = { line: 1, col: 1 };
+
 	public tokens: Token[] = [];
 
 	constructor(private readonly fileContents: string) {}
@@ -30,36 +38,45 @@ export class Tokenizer {
 		return this.fileContents.slice(start, start + length);
 	}
 
-	#append(kind: TokenKind, value: string): void {
-		this.tokens.push({ kind, value });
+	#append(kind: TokenKind, value: string, site: TokenSite): void {
+		this.tokens.push({ kind, value, site });
 	}
 
 	#advance(length: number): void {
+		const newLine = this.#current() === "\n";
+
 		this.#index = Math.min(this.#index + length, this.fileContents.length);
+		this.#site = {
+			line: newLine ? this.#site.line + 1 : this.#site.line,
+			col: newLine ? 1 : this.#site.col + length,
+		};
 	}
 
 	#tokenizeRaw(): void {
 		const startIndex = this.#index;
+		const site = { ...this.#site };
 
 		while (this.#current(2) !== "{=" && this.#index < this.fileContents.length) {
 			this.#advance(1);
 		}
 
-		this.#append("RAW", this.fileContents.slice(startIndex, this.#index));
+		this.#append("RAW", this.fileContents.slice(startIndex, this.#index), site);
 	}
 
 	#tokenizeIdent(): void {
 		const startIndex = this.#index;
 		const endRegex = /[^a-zA-Z0-9_]/;
+		const site = { ...this.#site };
 
 		while (!endRegex.test(this.#current())) {
 			this.#advance(1);
 		}
 
-		this.#append("LITERAL_IDENTIFIER", this.fileContents.slice(startIndex, this.#index));
+		this.#append("LITERAL_IDENTIFIER", this.fileContents.slice(startIndex, this.#index), site);
 	}
 
 	#tokenizeString(): void {
+		const site = { ...this.#site };
 		this.#advance(1);
 
 		const startIndex = this.#index;
@@ -67,16 +84,17 @@ export class Tokenizer {
 			this.#advance(1);
 		}
 
-		console.log("HER");
+		this.#append("LITERAL_STRING", this.fileContents.slice(startIndex, this.#index), site);
 		this.#advance(1);
-		this.#append("LITERAL_STRING", this.fileContents.slice(startIndex, this.#index));
 	}
 
 	#tokenizeTemplate(): void {
-		this.#append("TEMPLATE_START", "{=");
+		this.#append("TEMPLATE_START", "{=", { ...this.#site });
 		this.#advance(2);
 
 		while (this.#current(2) !== "=}" && this.#index < this.fileContents.length) {
+			const site = { ...this.#site };
+
 			switch (this.#current()) {
 				case " ":
 				case "\n":
@@ -85,7 +103,7 @@ export class Tokenizer {
 					continue;
 				case "|":
 					if (this.#next() === ">") {
-						this.#append("OP_PIPE", "|>");
+						this.#append("OP_PIPE", "|>", site);
 						this.#advance(2);
 						continue;
 					}
@@ -98,7 +116,7 @@ export class Tokenizer {
 			}
 		}
 
-		this.#append("TEMPLATE_END", "=}");
+		this.#append("TEMPLATE_END", "=}", { ...this.#site });
 		this.#advance(2);
 	}
 
@@ -116,7 +134,7 @@ export class Tokenizer {
 			}
 		}
 
-		this.#append("EOF", "");
+		this.#append("EOF", "", { ...this.#site });
 
 		return this;
 	}

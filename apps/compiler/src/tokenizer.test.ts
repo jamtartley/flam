@@ -1,73 +1,93 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { Tokenizer } from "./tokenizer";
+import { Token, TokenKind, Tokenizer } from "./tokenizer";
+
+function expectTokenKinds(tokens: Token[], kinds: TokenKind[]) {
+	assert.equal(tokens.length, kinds.length);
+
+	for (let i = 0; i < tokens.length; i++) {
+		assert.equal(tokens[i]?.kind, kinds[i]);
+	}
+}
 
 test("Tokenizer generates a RAW token", () => {
 	const tokenizer = new Tokenizer("Hello, world!").tokenize();
 
-	assert.ok(tokenizer.tokens[0]?.kind === "RAW");
+	expectTokenKinds(tokenizer.tokens, ["RAW", "EOF"]);
 });
 
 test("Tokenizer generates an EOF token", () => {
 	const tokenizer = new Tokenizer("").tokenize();
 
-	assert.ok(tokenizer.tokens[0]?.kind === "EOF");
+	expectTokenKinds(tokenizer.tokens, ["EOF"]);
 });
 
 test("Tokenizer generates valid template tokens", () => {
 	const tokenizer = new Tokenizer("{= name =}").tokenize();
 
-	console.log(tokenizer.tokens);
-	assert.ok(tokenizer.tokens[0]?.kind === "TEMPLATE_START");
-	assert.ok(tokenizer.tokens[1]?.kind === "LITERAL_IDENTIFIER");
-	assert.ok(tokenizer.tokens[2]?.kind === "TEMPLATE_END");
+	expectTokenKinds(tokenizer.tokens, ["TEMPLATE_START", "LITERAL_IDENTIFIER", "TEMPLATE_END", "EOF"]);
 });
 
 test("Tokenizer generates both raw and valid template tokens", () => {
 	const tokenizer = new Tokenizer("Hello, {= name =}!").tokenize();
 
-	assert.ok(tokenizer.tokens[0]?.kind === "RAW");
-	assert.ok(tokenizer.tokens[1]?.kind === "TEMPLATE_START");
-	assert.ok(tokenizer.tokens[2]?.kind === "LITERAL_IDENTIFIER");
-	assert.ok(tokenizer.tokens[3]?.kind === "TEMPLATE_END");
-	assert.ok(tokenizer.tokens[4]?.kind === "RAW");
-	assert.ok(tokenizer.tokens[5]?.kind === "EOF");
+	expectTokenKinds(tokenizer.tokens, ["RAW", "TEMPLATE_START", "LITERAL_IDENTIFIER", "TEMPLATE_END", "RAW", "EOF"]);
 });
 
 test("Tokenizer handles literal strings inside template", () => {
-	const tokenizer = new Tokenizer('Hello, {= "Hi" =}').tokenize();
+	const tokenizer = new Tokenizer('Hello, {= "Hello" =}').tokenize();
 
-	assert.ok(tokenizer.tokens[0]?.kind === "RAW");
-	assert.ok(tokenizer.tokens[1]?.kind === "TEMPLATE_START");
-	assert.ok(tokenizer.tokens[2]?.kind === "LITERAL_STRING");
-	assert.ok(tokenizer.tokens[3]?.kind === "TEMPLATE_END");
-	assert.ok(tokenizer.tokens[4]?.kind === "EOF");
+	expectTokenKinds(tokenizer.tokens, ["RAW", "TEMPLATE_START", "LITERAL_STRING", "TEMPLATE_END", "EOF"]);
+});
+
+test("Tokenizer removes speech marks from literal string values", () => {
+	const tokenizer = new Tokenizer('{= "Hello" =}').tokenize();
+
+	assert.equal(tokenizer.tokens[1]?.value, "Hello");
 });
 
 test("Tokenizer ignores speech marks outside template", () => {
 	const tokenizer = new Tokenizer('Hello, "world"').tokenize();
 
-	assert.ok(tokenizer.tokens[0]?.kind === "RAW");
-	assert.ok(tokenizer.tokens[1]?.kind === "EOF");
+	expectTokenKinds(tokenizer.tokens, ["RAW", "EOF"]);
 });
 
 test("Tokenizer generates pipe token inside template", () => {
-	const tokenizer = new Tokenizer('{= "Hi" |> uppercase =}').tokenize();
+	const tokenizer = new Tokenizer('{= "Hello" |> uppercase =}').tokenize();
 
-	assert.ok(tokenizer.tokens[0]?.kind === "TEMPLATE_START");
-	assert.ok(tokenizer.tokens[1]?.kind === "LITERAL_STRING");
-	assert.ok(tokenizer.tokens[2]?.kind === "OP_PIPE");
-	assert.ok(tokenizer.tokens[3]?.kind === "LITERAL_IDENTIFIER");
-	assert.ok(tokenizer.tokens[4]?.kind === "TEMPLATE_END");
-	assert.ok(tokenizer.tokens[5]?.kind === "EOF");
+	expectTokenKinds(tokenizer.tokens, [
+		"TEMPLATE_START",
+		"LITERAL_STRING",
+		"OP_PIPE",
+		"LITERAL_IDENTIFIER",
+		"TEMPLATE_END",
+		"EOF",
+	]);
 });
 
 test("Tokenizer ignores pipe token outside template", () => {
 	const tokenizer = new Tokenizer('"Hello" |> {= "world" =}').tokenize();
 
-	assert.ok(tokenizer.tokens[0]?.kind === "RAW");
-	assert.ok(tokenizer.tokens[1]?.kind === "TEMPLATE_START");
-	assert.ok(tokenizer.tokens[2]?.kind === "LITERAL_STRING");
-	assert.ok(tokenizer.tokens[3]?.kind === "TEMPLATE_END");
-	assert.ok(tokenizer.tokens[4]?.kind === "EOF");
+	expectTokenKinds(tokenizer.tokens, ["RAW", "TEMPLATE_START", "LITERAL_STRING", "TEMPLATE_END", "EOF"]);
+});
+
+test("Tokenizer tracks line/column position across newline", () => {
+	const tokenizer = new Tokenizer(`
+      {= name =}
+	`).tokenize();
+
+	assert.equal(tokenizer.tokens[1]?.site.line, 2);
+	assert.equal(tokenizer.tokens[1]?.site.col, 7);
+});
+
+test("Tokenizer tracks line/column position when literal string spans multiple lines", () => {
+	const tokenizer = new Tokenizer(`
+      {= "Hello
+
+" =}
+	`).tokenize();
+
+	assert.equal(tokenizer.tokens[2]?.value, "Hello\n\n");
+	assert.equal(tokenizer.tokens[2]?.site.line, 2);
+	assert.equal(tokenizer.tokens[2]?.site.col, 10);
 });
