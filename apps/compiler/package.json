@@ -6,11 +6,11 @@
 	"scripts": {
 		"ci:build": "esbuild src/index.ts",
 		"ci:lint": "eslint ./src/**/*.ts",
-		"ci:test": "node --test --require ts-node/register ./src/**",
+		"ci:test": "glob -c \"node --import tsx --no-warnings --test\" \"./src/**/*.test.ts\"",
 		"ci:start": "node build/index.js",
 		"ci:typecheck": "tsc --noEmit",
 		"dev:start": "nodemon src/index.ts",
-		"dev:test": "nodemon --exec node --test --require ts-node/register ./src/**"
+		"dev:test": "glob -c \"nodemon --exec node --import tsx --no-warnings --test\" \"./src/**/*.test.ts\""
 	},
 	"keywords": [],
 	"author": "",
@@ -19,8 +19,10 @@
 		"@types/node": "^20.11.30",
 		"esbuild": "^0.20.2",
 		"eslint": "^8.57.0",
+		"glob": "^10.3.10",
 		"nodemon": "^3.1.0",
 		"ts-node": "^10.9.2",
+		"tsx": "^4.7.1",
 		"typescript": "^5.3.3"
 	}
 }

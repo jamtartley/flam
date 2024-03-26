@@ -28,6 +28,20 @@ test("Tokenizer generates valid template tokens", () => {
 	expectTokenKinds(tokenizer.tokens, ["TEMPLATE_START", "LITERAL_IDENTIFIER", "TEMPLATE_END", "EOF"]);
 });
 
+test("Tokenizer generates valid control tokens", () => {
+	const tokenizer = new Tokenizer("{% for name in names %}").tokenize();
+
+	expectTokenKinds(tokenizer.tokens, [
+		"CONTROL_START",
+		"LITERAL_IDENTIFIER",
+		"LITERAL_IDENTIFIER",
+		"LITERAL_IDENTIFIER",
+		"LITERAL_IDENTIFIER",
+		"CONTROL_END",
+		"EOF",
+	]);
+});
+
 test("Tokenizer generates both raw and valid template tokens", () => {
 	const tokenizer = new Tokenizer("Hello, {= name =}!").tokenize();
 
