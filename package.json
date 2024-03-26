@@ -6,6 +6,12 @@
 		"node": "20.11.1"
 	},
 	"scripts": {
+		"ci:build": "turbo run ci:build",
+		"ci:format": "prettier --check \"**/*.{json,ts,tsx,md}\"",
+		"ci:lint": "turbo run ci:lint",
+		"ci:start": "turbo run ci:start",
+		"ci:test": "turbo run ci:test",
+		"ci:typecheck": "turbo run ci:typecheck",
 		"dev:start": "turbo dev:start",
 		"dev:test": "turbo dev:test",
 		"build": "turbo build",
