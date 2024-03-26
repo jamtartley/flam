@@ -81,7 +81,7 @@ test("Tokenizer generates no tokens for comments embedded in control block", () 
 	]);
 });
 
-test("Tokenizer handles literal strings inside template", () => {
+test("Tokenizer handles literal strings inside tags", () => {
 	const tokenizer = new Tokenizer('Hello, {= "Hello" =}').tokenize();
 
 	expectTokenKinds(tokenizer.tokens, ["RAW", "TEMPLATE_START", "LITERAL_STRING", "TEMPLATE_END", "EOF"]);
@@ -93,13 +93,13 @@ test("Tokenizer removes speech marks from literal string values", () => {
 	assert.equal(tokenizer.tokens[1]?.value, "Hello");
 });
 
-test("Tokenizer ignores speech marks outside template", () => {
+test("Tokenizer ignores speech marks outside tags", () => {
 	const tokenizer = new Tokenizer('Hello, "world"').tokenize();
 
 	expectTokenKinds(tokenizer.tokens, ["RAW", "EOF"]);
 });
 
-test("Tokenizer generates pipe token inside template", () => {
+test("Tokenizer generates pipe token inside tags", () => {
 	const tokenizer = new Tokenizer('{= "Hello" |> uppercase =}').tokenize();
 
 	expectTokenKinds(tokenizer.tokens, [
@@ -112,19 +112,35 @@ test("Tokenizer generates pipe token inside template", () => {
 	]);
 });
 
-test("Tokenizer ignores pipe token outside template", () => {
+test("Tokenizer ignores pipe token outside tags", () => {
 	const tokenizer = new Tokenizer('"Hello" |> {= "world" =}').tokenize();
 
 	expectTokenKinds(tokenizer.tokens, ["RAW", "TEMPLATE_START", "LITERAL_STRING", "TEMPLATE_END", "EOF"]);
 });
 
-test("Tokenizer handles literal numbers inside template", () => {
+test("Tokenizer generates parens inside tags", () => {
+	const tokenizer = new Tokenizer('{= name |> join(",") =}').tokenize();
+
+	expectTokenKinds(tokenizer.tokens, [
+		"TEMPLATE_START",
+		"LITERAL_IDENTIFIER",
+		"OP_PIPE",
+		"LITERAL_IDENTIFIER",
+		"L_PAREN",
+		"LITERAL_STRING",
+		"R_PAREN",
+		"TEMPLATE_END",
+		"EOF",
+	]);
+});
+
+test("Tokenizer handles literal numbers inside tags", () => {
 	const tokenizer = new Tokenizer("{= 123 =}").tokenize();
 
 	expectTokenKinds(tokenizer.tokens, ["TEMPLATE_START", "LITERAL_NUMBER", "TEMPLATE_END", "EOF"]);
 });
 
-test("Tokenizer handles arithmetic operators inside template", () => {
+test("Tokenizer handles arithmetic operators inside tags", () => {
 	const tokenizer = new Tokenizer("{= 1 + 2 - 3 / 4 * 5 =}").tokenize();
 	expectTokenKinds(tokenizer.tokens, [
 		"TEMPLATE_START",
@@ -144,7 +160,7 @@ test("Tokenizer handles arithmetic operators inside template", () => {
 	]);
 });
 
-test("Tokenizer handles single character boolean operators inside template", () => {
+test("Tokenizer handles single character boolean operators inside tags", () => {
 	const tokenizerGt = new Tokenizer("{= age > 30 =}").tokenize();
 	const tokenizerLt = new Tokenizer("{= age < 30 =}").tokenize();
 
@@ -166,7 +182,7 @@ test("Tokenizer handles single character boolean operators inside template", () 
 	]);
 });
 
-test("Tokenizer handles multi-character boolean operators inside template", () => {
+test("Tokenizer handles multi-character boolean operators inside tags", () => {
 	const tokenizerEq = new Tokenizer("{= age == 30 =}").tokenize();
 	const tokenizerNe = new Tokenizer("{= age =! 30 =}").tokenize();
 	const tokenizerGte = new Tokenizer("{= age >= 30 =}").tokenize();
