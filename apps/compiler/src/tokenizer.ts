@@ -2,9 +2,21 @@ export type TokenKind =
 	| "RAW"
 	| "LITERAL_IDENTIFIER"
 	| "LITERAL_STRING"
+	| "LITERAL_NUMBER"
 	| "TEMPLATE_START"
 	| "TEMPLATE_END"
 	| "OP_PIPE"
+	| "OP_ASSIGN"
+	| "OP_EQ"
+	| "OP_NE"
+	| "OP_PLUS"
+	| "OP_MINUS"
+	| "OP_MULTIPLY"
+	| "OP_DIVIDE"
+	| "OP_GT"
+	| "OP_LT"
+	| "OP_GTE"
+	| "OP_LTE"
 	| "EOF";
 
 type TokenSite = {
@@ -17,6 +29,9 @@ export type Token = {
 	value: string;
 	site: TokenSite;
 };
+
+const _0 = "0".charCodeAt(0);
+const _9 = "9".charCodeAt(0);
 
 export class Tokenizer {
 	#index: number = 0;
@@ -42,7 +57,14 @@ export class Tokenizer {
 		this.tokens.push({ kind, value, site });
 	}
 
-	#advance(length: number): void {
+	#isCurrentDigit(): boolean {
+		const current = this.#current();
+		const currentCharCode = current.charCodeAt(0);
+
+		return currentCharCode >= _0 && currentCharCode <= _9;
+	}
+
+	#advance(length: number = 1): void {
 		const newLine = this.#current() === "\n";
 
 		this.#index = Math.min(this.#index + length, this.fileContents.length);
@@ -57,10 +79,21 @@ export class Tokenizer {
 		const site = { ...this.#site };
 
 		while (this.#current(2) !== "{=" && this.#index < this.fileContents.length) {
-			this.#advance(1);
+			this.#advance();
 		}
 
 		this.#append("RAW", this.fileContents.slice(startIndex, this.#index), site);
+	}
+
+	#tokenizeNumber(): void {
+		const startIndex = this.#index;
+		const site = { ...this.#site };
+
+		while (this.#isCurrentDigit()) {
+			this.#advance();
+		}
+
+		this.#append("LITERAL_NUMBER", this.fileContents.slice(startIndex, this.#index), site);
 	}
 
 	#tokenizeIdent(): void {
@@ -69,7 +102,7 @@ export class Tokenizer {
 		const site = { ...this.#site };
 
 		while (!endRegex.test(this.#current())) {
-			this.#advance(1);
+			this.#advance();
 		}
 
 		this.#append("LITERAL_IDENTIFIER", this.fileContents.slice(startIndex, this.#index), site);
@@ -77,15 +110,15 @@ export class Tokenizer {
 
 	#tokenizeString(): void {
 		const site = { ...this.#site };
-		this.#advance(1);
+		this.#advance();
 
 		const startIndex = this.#index;
 		while (this.#current() !== '"' && this.#index < this.fileContents.length) {
-			this.#advance(1);
+			this.#advance();
 		}
 
 		this.#append("LITERAL_STRING", this.fileContents.slice(startIndex, this.#index), site);
-		this.#advance(1);
+		this.#advance();
 	}
 
 	#tokenizeTemplate(): void {
@@ -99,8 +132,58 @@ export class Tokenizer {
 				case " ":
 				case "\n":
 				case "\t":
-					this.#advance(1);
+					this.#advance();
 					continue;
+				case "+":
+					this.#append("OP_PLUS", "+", site);
+					this.#advance();
+					continue;
+				case "-":
+					this.#append("OP_MINUS", "-", site);
+					this.#advance();
+					continue;
+				case "*":
+					this.#append("OP_MULTIPLY", "*", site);
+					this.#advance();
+					continue;
+				case "/":
+					this.#append("OP_DIVIDE", "/", site);
+					this.#advance();
+					continue;
+				case ">":
+					if (this.#next() === "=") {
+						this.#append("OP_GTE", ">=", site);
+						this.#advance(2);
+						continue;
+					} else {
+						this.#append("OP_GT", ">", site);
+						this.#advance();
+						continue;
+					}
+				case "<":
+					if (this.#next() === "=") {
+						this.#append("OP_LTE", "<=", site);
+						this.#advance(2);
+						continue;
+					} else {
+						this.#append("OP_LT", "<", site);
+						this.#advance();
+						continue;
+					}
+				case "=":
+					if (this.#next() === "=") {
+						this.#append("OP_EQ", "==", site);
+						this.#advance(2);
+						continue;
+					} else if (this.#next() === "!") {
+						this.#append("OP_NE", "=!", site);
+						this.#advance(2);
+						continue;
+					} else {
+						this.#append("OP_ASSIGN", "=", site);
+						this.#advance();
+						continue;
+					}
 				case "|":
 					if (this.#next() === ">") {
 						this.#append("OP_PIPE", "|>", site);
@@ -111,7 +194,11 @@ export class Tokenizer {
 					this.#tokenizeString();
 					continue;
 				default:
-					this.#tokenizeIdent();
+					if (this.#isCurrentDigit()) {
+						this.#tokenizeNumber();
+					} else {
+						this.#tokenizeIdent();
+					}
 					continue;
 			}
 		}
