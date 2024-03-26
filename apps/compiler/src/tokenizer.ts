@@ -41,6 +41,9 @@ const TEMPLATE_END = "=}";
 const CONTROL_START = "{%";
 const CONTROL_END = "%}";
 
+const COMMENT_START = "{#";
+const COMMENT_END = "#}";
+
 export class Tokenizer {
 	#index: number = 0;
 	#site: TokenSite = { line: 1, col: 1 };
@@ -65,13 +68,6 @@ export class Tokenizer {
 		this.tokens.push({ kind, value, site });
 	}
 
-	#isCurrentDigit(): boolean {
-		const current = this.#current();
-		const currentCharCode = current.charCodeAt(0);
-
-		return currentCharCode >= _0 && currentCharCode <= _9;
-	}
-
 	#advance(length: number = 1): void {
 		const newLine = this.#current() === "\n";
 
@@ -82,13 +78,25 @@ export class Tokenizer {
 		};
 	}
 
+	#advanceUntil(terminator: () => boolean): void {
+		while (!terminator() && this.#index < this.fileContents.length) {
+			this.#advance();
+		}
+	}
+
+	#isCurrentDigit(): boolean {
+		const current = this.#current();
+		const currentCharCode = current.charCodeAt(0);
+
+		return currentCharCode >= _0 && currentCharCode <= _9;
+	}
+
 	#tokenizeRaw(): void {
 		const startIndex = this.#index;
 		const site = { ...this.#site };
 
-		while (this.#current(2) !== "{=" && this.#index < this.fileContents.length) {
-			this.#advance();
-		}
+		const endRawStarts = [TEMPLATE_START, CONTROL_START, COMMENT_START];
+		this.#advanceUntil(() => endRawStarts.some((s) => this.#current(s.length) === s));
 
 		this.#append("RAW", this.fileContents.slice(startIndex, this.#index), site);
 	}
@@ -97,21 +105,17 @@ export class Tokenizer {
 		const startIndex = this.#index;
 		const site = { ...this.#site };
 
-		while (this.#isCurrentDigit()) {
-			this.#advance();
-		}
+		this.#advanceUntil(() => !this.#isCurrentDigit());
 
 		this.#append("LITERAL_NUMBER", this.fileContents.slice(startIndex, this.#index), site);
 	}
 
-	#tokenizeIdent(): void {
+	#tokenizeIdentifier(): void {
 		const startIndex = this.#index;
 		const endRegex = /[^a-zA-Z0-9_]/;
 		const site = { ...this.#site };
 
-		while (!endRegex.test(this.#current())) {
-			this.#advance();
-		}
+		this.#advanceUntil(() => endRegex.test(this.#current()));
 
 		this.#append("LITERAL_IDENTIFIER", this.fileContents.slice(startIndex, this.#index), site);
 	}
@@ -121,19 +125,25 @@ export class Tokenizer {
 		this.#advance();
 
 		const startIndex = this.#index;
-		while (this.#current() !== '"' && this.#index < this.fileContents.length) {
-			this.#advance();
-		}
+		this.#advanceUntil(() => this.#current() === '"');
 
 		this.#append("LITERAL_STRING", this.fileContents.slice(startIndex, this.#index), site);
 		this.#advance();
+	}
+
+	#tokenizeComment(): void {
+		this.#advance(2);
+
+		this.#advanceUntil(() => this.#current(COMMENT_END.length) === COMMENT_END);
+
+		this.#advance(2);
 	}
 
 	#tokenizeControl(): void {
 		this.#append("CONTROL_START", CONTROL_START, { ...this.#site });
 		this.#advance(2);
 
-		this.#tokenizeExpression(CONTROL_END);
+		this.#tokenizeInsideTags(CONTROL_END);
 
 		this.#append("CONTROL_END", CONTROL_END, { ...this.#site });
 		this.#advance(2);
@@ -143,13 +153,13 @@ export class Tokenizer {
 		this.#append("TEMPLATE_START", TEMPLATE_START, { ...this.#site });
 		this.#advance(2);
 
-		this.#tokenizeExpression(TEMPLATE_END);
+		this.#tokenizeInsideTags(TEMPLATE_END);
 
 		this.#append("TEMPLATE_END", TEMPLATE_END, { ...this.#site });
 		this.#advance(2);
 	}
 
-	#tokenizeExpression(endTag: string): void {
+	#tokenizeInsideTags(endTag: string): void {
 		while (this.#current(endTag.length) !== endTag && this.#index < this.fileContents.length) {
 			const site = { ...this.#site };
 
@@ -222,7 +232,7 @@ export class Tokenizer {
 					if (this.#isCurrentDigit()) {
 						this.#tokenizeNumber();
 					} else {
-						this.#tokenizeIdent();
+						this.#tokenizeIdentifier();
 					}
 					continue;
 			}
@@ -235,6 +245,8 @@ export class Tokenizer {
 				this.#tokenizeTemplate();
 			} else if (this.#current(2) === CONTROL_START) {
 				this.#tokenizeControl();
+			} else if (this.#current(2) === COMMENT_START) {
+				this.#tokenizeComment();
 			} else {
 				this.#tokenizeRaw();
 			}
