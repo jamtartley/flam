@@ -71,6 +71,94 @@ test("Tokenizer ignores pipe token outside template", () => {
 	expectTokenKinds(tokenizer.tokens, ["RAW", "TEMPLATE_START", "LITERAL_STRING", "TEMPLATE_END", "EOF"]);
 });
 
+test("Tokenizer handles literal numbers inside template", () => {
+	const tokenizer = new Tokenizer("{= 123 =}").tokenize();
+
+	expectTokenKinds(tokenizer.tokens, ["TEMPLATE_START", "LITERAL_NUMBER", "TEMPLATE_END", "EOF"]);
+});
+
+test("Tokenizer handles arithmetic operators inside template", () => {
+	const tokenizer = new Tokenizer("{= 1 + 2 - 3 / 4 * 5 =}").tokenize();
+	expectTokenKinds(tokenizer.tokens, [
+		"TEMPLATE_START",
+		"LITERAL_NUMBER",
+		"OP_PLUS",
+		"LITERAL_NUMBER",
+		"OP_MINUS",
+
+		"LITERAL_NUMBER",
+		"OP_DIVIDE",
+		"LITERAL_NUMBER",
+		"OP_MULTIPLY",
+		"LITERAL_NUMBER",
+
+		"TEMPLATE_END",
+		"EOF",
+	]);
+});
+
+test("Tokenizer handles single character boolean operators inside template", () => {
+	const tokenizerGt = new Tokenizer("{= age > 30 =}").tokenize();
+	const tokenizerLt = new Tokenizer("{= age < 30 =}").tokenize();
+
+	expectTokenKinds(tokenizerGt.tokens, [
+		"TEMPLATE_START",
+		"LITERAL_IDENTIFIER",
+		"OP_GT",
+		"LITERAL_NUMBER",
+		"TEMPLATE_END",
+		"EOF",
+	]);
+	expectTokenKinds(tokenizerLt.tokens, [
+		"TEMPLATE_START",
+		"LITERAL_IDENTIFIER",
+		"OP_LT",
+		"LITERAL_NUMBER",
+		"TEMPLATE_END",
+		"EOF",
+	]);
+});
+
+test("Tokenizer handles multi-character boolean operators inside template", () => {
+	const tokenizerEq = new Tokenizer("{= age == 30 =}").tokenize();
+	const tokenizerNe = new Tokenizer("{= age =! 30 =}").tokenize();
+	const tokenizerGte = new Tokenizer("{= age >= 30 =}").tokenize();
+	const tokenizerLte = new Tokenizer("{= age <= 30 =}").tokenize();
+
+	expectTokenKinds(tokenizerEq.tokens, [
+		"TEMPLATE_START",
+		"LITERAL_IDENTIFIER",
+		"OP_EQ",
+		"LITERAL_NUMBER",
+		"TEMPLATE_END",
+		"EOF",
+	]);
+	expectTokenKinds(tokenizerNe.tokens, [
+		"TEMPLATE_START",
+		"LITERAL_IDENTIFIER",
+		"OP_NE",
+		"LITERAL_NUMBER",
+		"TEMPLATE_END",
+		"EOF",
+	]);
+	expectTokenKinds(tokenizerLte.tokens, [
+		"TEMPLATE_START",
+		"LITERAL_IDENTIFIER",
+		"OP_LTE",
+		"LITERAL_NUMBER",
+		"TEMPLATE_END",
+		"EOF",
+	]);
+	expectTokenKinds(tokenizerGte.tokens, [
+		"TEMPLATE_START",
+		"LITERAL_IDENTIFIER",
+		"OP_GTE",
+		"LITERAL_NUMBER",
+		"TEMPLATE_END",
+		"EOF",
+	]);
+});
+
 test("Tokenizer tracks line/column position across newline", () => {
 	const tokenizer = new Tokenizer(`
       {= name =}
