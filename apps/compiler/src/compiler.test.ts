@@ -6,6 +6,7 @@ import {
 	AstBinaryOperatorNode,
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
+	AstLiteralStringNode,
 	AstRootNode,
 	AstTemplateNode,
 } from "./astNodes";
@@ -83,7 +84,7 @@ test("Compiler outputs value of 42 + (10 / (4 - 1))", () => {
 	assert.equal(output, "45.333333333333336");
 });
 
-test("Compiler outputs value of piped expression", () => {
+test("Compiler outputs value of number filter application", () => {
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstTemplateNode(
@@ -99,4 +100,22 @@ test("Compiler outputs value of piped expression", () => {
 	const output = compiler.compile();
 
 	assert.equal(output, "42");
+});
+
+test("Compiler outputs value of string filter application", () => {
+	const compiler = new Compiler(
+		new AstRootNode([
+			new AstTemplateNode(
+				new AstBinaryExpressionNode(
+					new AstLiteralStringNode("hello, world!"),
+					new AstBinaryOperatorNode("OP_PIPE"),
+					new AstLiteralIdentifierNode("uppercase")
+				)
+			),
+		])
+	);
+
+	const output = compiler.compile();
+
+	assert.equal(output, "HELLO, WORLD!");
 });

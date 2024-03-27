@@ -1,9 +1,10 @@
-import { OperatorValue, RuntimeValue, StringValue, Visitor } from "./compiler";
+import { NumberValue, OperatorValue, RuntimeValue, StringValue, Visitor } from "./compiler";
 
 export type NodeType =
 	| "AstTemplateNode"
 	| "AstBinaryOperatorNode"
 	| "AstBinaryExpressionNode"
+	| "AstLiteralStringNode"
 	| "AstLiteralNumberNode"
 	| "AstLiteralIdentifierNode"
 	| "AstRootNode";
@@ -88,6 +89,19 @@ export class AstBinaryExpressionNode extends AstExpressionNode {
 	}
 }
 
+export class AstLiteralStringNode extends AstExpressionNode {
+	public readonly value: string;
+
+	constructor(value: string) {
+		super("AstLiteralStringNode");
+		this.value = value;
+	}
+
+	public accept(visitor: Visitor): StringValue {
+		return visitor.visitLiteralStringNode(this);
+	}
+}
+
 export class AstLiteralNumberNode extends AstExpressionNode {
 	public readonly value: number;
 
@@ -96,7 +110,7 @@ export class AstLiteralNumberNode extends AstExpressionNode {
 		this.value = value;
 	}
 
-	public accept(visitor: Visitor): RuntimeValue<unknown> {
+	public accept(visitor: Visitor): NumberValue {
 		return visitor.visitLiteralNumberNode(this);
 	}
 }

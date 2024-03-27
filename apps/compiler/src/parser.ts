@@ -4,6 +4,7 @@ import {
 	AstExpressionNode,
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
+	AstLiteralStringNode,
 	AstRootNode,
 	AstTemplateNode,
 } from "./astNodes";
@@ -72,6 +73,11 @@ export class Parser {
 			case "LITERAL_IDENTIFIER": {
 				const value = this.#eat("LITERAL_IDENTIFIER").value;
 				return new AstLiteralIdentifierNode(value);
+			}
+			case "LITERAL_STRING": {
+				const str = this.#eat("LITERAL_STRING");
+
+				return new AstLiteralStringNode(str.value);
 			}
 			case "LITERAL_NUMBER": {
 				const number = this.#eat("LITERAL_NUMBER");
