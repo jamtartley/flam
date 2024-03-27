@@ -22,7 +22,22 @@ export type TokenKind =
 	| "OP_LT"
 	| "OP_GTE"
 	| "OP_LTE"
+	| "KEYWORD_FOR"
+	| "KEYWORD_IN"
+	| "KEYWORD_ROF"
+	| "KEYWORD_IF"
+	| "KEYWORD_ELSE"
+	| "KEYWORD_FI"
 	| "EOF";
+
+const keywords = new Map<string, TokenKind>([
+	["for", "KEYWORD_FOR"],
+	["in", "KEYWORD_IN"],
+	["rof", "KEYWORD_ROF"],
+	["if", "KEYWORD_IF"],
+	["else", "KEYWORD_ELSE"],
+	["fi", "KEYWORD_FI"],
+]);
 
 type TokenSite = {
 	line: number;
@@ -123,7 +138,13 @@ export class Tokenizer {
 
 		this.#advanceUntil(() => endRegex.test(this.#current()));
 
-		this.#append("LITERAL_IDENTIFIER", this.#fileContents.slice(startIndex, this.#index), site);
+		const value = this.#fileContents.slice(startIndex, this.#index);
+
+		if (keywords.has(value)) {
+			this.#append(keywords.get(value)!, value, site);
+		} else {
+			this.#append("LITERAL_IDENTIFIER", value, site);
+		}
 	}
 
 	#tokenizeString(): void {

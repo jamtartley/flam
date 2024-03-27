@@ -28,14 +28,14 @@ test("Tokenizer generates valid template tokens", () => {
 	expectTokenKinds(tokenizer.tokens, ["TEMPLATE_START", "LITERAL_IDENTIFIER", "TEMPLATE_END", "EOF"]);
 });
 
-test("Tokenizer generates valid control tokens", () => {
+test("Tokenizer generates keyword tokens for known identifiers", () => {
 	const tokenizer = new Tokenizer("{% for name in names %}").tokenize();
 
 	expectTokenKinds(tokenizer.tokens, [
 		"CONTROL_START",
+		"KEYWORD_FOR",
 		"LITERAL_IDENTIFIER",
-		"LITERAL_IDENTIFIER",
-		"LITERAL_IDENTIFIER",
+		"KEYWORD_IN",
 		"LITERAL_IDENTIFIER",
 		"CONTROL_END",
 		"EOF",
@@ -68,13 +68,13 @@ test("Tokenizer generates no tokens for comments embedded in control block", () 
 	expectTokenKinds(tokenizer.tokens, [
 		"RAW",
 		"CONTROL_START",
-		"LITERAL_IDENTIFIER",
+		"KEYWORD_IF",
 		"LITERAL_IDENTIFIER",
 		"CONTROL_END",
 		"RAW",
 		"RAW",
 		"CONTROL_START",
-		"LITERAL_IDENTIFIER",
+		"KEYWORD_FI",
 		"CONTROL_END",
 		"RAW",
 		"EOF",
