@@ -150,7 +150,7 @@ export class Compiler implements Visitor {
 		if (filters.has(identifier.name)) {
 			const builtin = filters.get(identifier.name)!;
 
-			return { kind: "filter", value: builtin };
+			return { kind: "filter", value: builtin.func };
 		}
 
 		return { kind: "variable", value: identifier.name };
