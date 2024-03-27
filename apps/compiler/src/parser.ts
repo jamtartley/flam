@@ -50,6 +50,19 @@ export class Parser {
 		return this.#tokens.shift()!;
 	}
 
+	#getOperatorPrecedence(operator: Token): number {
+		switch (operator.kind) {
+			case "OP_MULTIPLY":
+			case "OP_DIVIDE":
+				return 2;
+			case "OP_PLUS":
+			case "OP_MINUS":
+				return 1;
+			default:
+				return -1;
+		}
+	}
+
 	#parseExpressionFactor(): AstExpressionNode {
 		const number = this.#eat("LITERAL_NUMBER");
 
@@ -57,15 +70,21 @@ export class Parser {
 		return new AstLiteralNumberNode(Number(number.value));
 	}
 
-	#parseBinaryExpression(): AstExpressionNode {
-		const binaryOperators = ["OP_PLUS", "OP_MINUS", "OP_MUL", "OP_DIV"];
-		let left = this.#parseExpressionFactor();
+	#parseBinaryExpression(left: AstExpressionNode, minPrecedence: number): AstExpressionNode {
+		const binaryOperators: TokenKind[] = ["OP_PLUS", "OP_MINUS", "OP_MULTIPLY", "OP_DIVIDE"];
 
-		while (binaryOperators.includes(this.#current().kind)) {
-			const operator = this.#eat(this.#current().kind);
-			const right = this.#parseExpressionFactor();
+		while (
+			binaryOperators.includes(this.#current().kind) &&
+			this.#getOperatorPrecedence(this.#current()) >= minPrecedence
+		) {
+			const op = this.#eat(this.#current().kind);
+			let right = this.#parseExpressionFactor();
 
-			left = new AstBinaryExpressionNode(left, new AstBinaryOperatorNode(operator.value), right);
+			while (this.#getOperatorPrecedence(this.#current()) > this.#getOperatorPrecedence(op)) {
+				right = this.#parseBinaryExpression(right, this.#getOperatorPrecedence(this.#current()));
+			}
+
+			left = new AstBinaryExpressionNode(left, new AstBinaryOperatorNode(op.value), right);
 		}
 
 		return left;
@@ -74,7 +93,8 @@ export class Parser {
 	#parseTemplate(): AstTemplateNode {
 		this.#eat("TEMPLATE_START");
 
-		const expression = this.#parseBinaryExpression();
+		const left = this.#parseExpressionFactor();
+		const expression = this.#parseBinaryExpression(left, 0);
 
 		this.#eat("TEMPLATE_END");
 
