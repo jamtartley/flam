@@ -8,7 +8,7 @@ import {
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstTemplateNode,
-} from "./astNodes";
+} from "./ast";
 
 test("Parser emits a single AstRootNode", () => {
 	const tokens: Token[] = [

@@ -7,10 +7,11 @@ import {
 	AstLiteralStringNode,
 	AstRootNode,
 	AstTemplateNode,
-} from "./astNodes";
+} from "./ast";
 import { applyFilter, filters } from "./filters";
+import { Context } from "./context";
 
-type ValueKind = "number" | "string" | "filter" | "variable" | "operator";
+type ValueKind = "number" | "string" | "filter" | "operator";
 
 export type RuntimeValue<T> = {
 	kind: ValueKind;
@@ -33,11 +34,7 @@ export type FilterValue = RuntimeValue<Function> & {
 	kind: "filter";
 };
 
-export type VariableValue = RuntimeValue<string> & {
-	kind: "variable";
-};
-
-export type IdentifierValue = FilterValue | VariableValue;
+export type IdentifierValue = FilterValue | StringValue | NumberValue;
 
 export type OperatorValue = RuntimeValue<string> & {
 	kind: "operator";
@@ -68,9 +65,11 @@ export interface Visitor {
 
 export class Compiler implements Visitor {
 	readonly #rootNode: AstRootNode;
+	readonly #context: Context;
 
-	constructor(rootNode: AstRootNode) {
+	constructor(rootNode: AstRootNode, context: Context) {
 		this.#rootNode = rootNode;
+		this.#context = context;
 	}
 
 	#applyFilter(filter: FilterValue, left: UnresolvedValue): UnresolvedValue {
@@ -146,14 +145,15 @@ export class Compiler implements Visitor {
 		return { kind: "number", value: literalNumber.value };
 	}
 
-	visitLiteralIdentifierNode(identifier: AstLiteralIdentifierNode): IdentifierValue {
+	visitLiteralIdentifierNode(identifier: AstLiteralIdentifierNode): UnresolvedValue {
 		if (filters.has(identifier.name)) {
 			const builtin = filters.get(identifier.name)!;
 
 			return { kind: "filter", value: builtin.func };
 		}
 
-		return { kind: "variable", value: identifier.name };
+		const variable = this.#context.get(identifier.name);
+		return variable;
 	}
 
 	compile(): string {

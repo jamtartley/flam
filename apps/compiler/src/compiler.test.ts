@@ -9,7 +9,7 @@ import {
 	AstLiteralStringNode,
 	AstRootNode,
 	AstTemplateNode,
-} from "./astNodes";
+} from "./ast";
 
 test("Compiler outputs simple literal number", () => {
 	const compiler = new Compiler(new AstRootNode([new AstTemplateNode(new AstLiteralNumberNode(42))]));
