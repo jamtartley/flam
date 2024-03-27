@@ -4,10 +4,11 @@ import {
 	AstExpressionNode,
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
+	AstLiteralStringNode,
 	AstRootNode,
 	AstTemplateNode,
 } from "./astNodes";
-import { filters } from "./filters";
+import { applyFilter, filters } from "./filters";
 
 type ValueKind = "number" | "string" | "filter" | "variable" | "operator";
 
@@ -15,6 +16,8 @@ export type RuntimeValue<T> = {
 	kind: ValueKind;
 	value: T;
 };
+
+export type UnresolvedValue = RuntimeValue<unknown>;
 
 export type StringValue = RuntimeValue<string> & {
 	kind: "string";
@@ -40,26 +43,27 @@ export type OperatorValue = RuntimeValue<string> & {
 	kind: "operator";
 };
 
-function isNumberValue(value: RuntimeValue<unknown>): value is NumberValue {
+function isNumberValue(value: UnresolvedValue): value is NumberValue {
 	return value.kind === "number";
 }
 
-function isFilterValue(value: RuntimeValue<unknown>): value is FilterValue {
+function isFilterValue(value: UnresolvedValue): value is FilterValue {
 	return value.kind === "filter";
 }
 
-function isOperatorValue(value: RuntimeValue<unknown>): value is OperatorValue {
+function isOperatorValue(value: UnresolvedValue): value is OperatorValue {
 	return value.kind === "operator";
 }
 
 export interface Visitor {
 	visitRootNode(root: AstRootNode): StringValue;
-	visitTemplateNode(template: AstTemplateNode): RuntimeValue<unknown>;
-	visitExpressionNode(expression: AstExpressionNode): RuntimeValue<unknown>;
-	visitBinaryExpressionNode(binaryExpression: AstBinaryExpressionNode): RuntimeValue<unknown>;
+	visitTemplateNode(template: AstTemplateNode): UnresolvedValue;
+	visitExpressionNode(expression: AstExpressionNode): UnresolvedValue;
+	visitBinaryExpressionNode(binaryExpression: AstBinaryExpressionNode): UnresolvedValue;
 	visitBinaryOperatorNode(binaryOperator: AstBinaryOperatorNode): OperatorValue;
-	visitLiteralNumberNode(literalNumber: AstLiteralNumberNode): RuntimeValue<unknown>;
-	visitLiteralIdentifierNode(identifier: AstLiteralIdentifierNode): RuntimeValue<unknown>;
+	visitLiteralStringNode(literalString: AstLiteralStringNode): StringValue;
+	visitLiteralNumberNode(literalNumber: AstLiteralNumberNode): NumberValue;
+	visitLiteralIdentifierNode(identifier: AstLiteralIdentifierNode): UnresolvedValue;
 }
 
 export class Compiler implements Visitor {
@@ -67,6 +71,18 @@ export class Compiler implements Visitor {
 
 	constructor(rootNode: AstRootNode) {
 		this.#rootNode = rootNode;
+	}
+
+	#applyFilter(filter: FilterValue, left: UnresolvedValue): UnresolvedValue {
+		const applied = applyFilter(filter.value.name, left.value);
+
+		if (typeof applied === "number") {
+			return { kind: "number", value: applied };
+		} else if (typeof applied === "string") {
+			return { kind: "string", value: applied };
+		}
+
+		throw new Error(`Unexpected filter output: ${applied}`);
 	}
 
 	visitRootNode(root: AstRootNode): StringValue {
@@ -80,15 +96,15 @@ export class Compiler implements Visitor {
 		return { kind: "string", value: output };
 	}
 
-	visitTemplateNode(template: AstTemplateNode): RuntimeValue<unknown> {
+	visitTemplateNode(template: AstTemplateNode): UnresolvedValue {
 		return template.expression.accept(this);
 	}
 
-	visitExpressionNode(expression: AstExpressionNode): RuntimeValue<unknown> {
+	visitExpressionNode(expression: AstExpressionNode): UnresolvedValue {
 		return expression.accept(this);
 	}
 
-	visitBinaryExpressionNode(binaryExpression: AstBinaryExpressionNode): RuntimeValue<unknown> {
+	visitBinaryExpressionNode(binaryExpression: AstBinaryExpressionNode): UnresolvedValue {
 		const left = binaryExpression.left.accept(this);
 		const right = binaryExpression.right.accept(this);
 		const operator = binaryExpression.operator.accept(this);
@@ -110,7 +126,7 @@ export class Compiler implements Visitor {
 			switch (operator.value) {
 				case "OP_PIPE":
 					if (isFilterValue(right)) {
-						return { kind: "number", value: right.value(left.value) };
+						return this.#applyFilter(right, left);
 					}
 				default:
 					throw new Error(`Unexpected operator: ${operator.value}`);
@@ -120,6 +136,10 @@ export class Compiler implements Visitor {
 
 	visitBinaryOperatorNode(binaryOperator: AstBinaryOperatorNode): OperatorValue {
 		return { kind: "operator", value: binaryOperator.operator };
+	}
+
+	visitLiteralStringNode(literalString: AstLiteralStringNode): StringValue {
+		return { kind: "string", value: literalString.value };
 	}
 
 	visitLiteralNumberNode(literalNumber: AstLiteralNumberNode): NumberValue {

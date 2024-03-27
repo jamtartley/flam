@@ -88,12 +88,8 @@ export class Tokenizer {
 		return this.#fileContents.slice(start, start + length);
 	}
 
-	#append(kind: TokenKind, value: string, site: TokenSite): void {
-		if (kind.startsWith("OP+")) {
-			this.tokens.push({ kind, value, site, flag: "BINARY_OPERATOR" });
-		} else {
-			this.tokens.push({ kind, value, site });
-		}
+	#append(kind: TokenKind, value: string, site: TokenSite, flag?: TokenFlag): void {
+		this.tokens.push({ kind, value, site, flag });
 	}
 
 	#advance(length: number = 1): void {
