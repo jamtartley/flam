@@ -1,54 +1,12 @@
+import {
+	AstBinaryExpressionNode,
+	AstBinaryOperatorNode,
+	AstExpressionNode,
+	AstLiteralNumberNode,
+	AstRootNode,
+	AstTemplateNode,
+} from "./astNodes";
 import { Token, TokenKind } from "./tokenizer";
-
-type NodeType = "AstTemplateNode" | "AstLiteralNumberNode" | "AstRootNode";
-
-abstract class AstNode {
-	public readonly kind: NodeType;
-
-	constructor(kind: NodeType) {
-		this.kind = kind;
-	}
-}
-
-abstract class AstStatementNode extends AstNode {
-	constructor(kind: NodeType) {
-		super(kind);
-	}
-}
-
-abstract class AstExpressionNode extends AstNode {
-	constructor(kind: NodeType) {
-		super(kind);
-	}
-}
-
-class AstRootNode extends AstNode {
-	public readonly statements: AstStatementNode[];
-
-	constructor(statements: AstStatementNode[]) {
-		super("AstRootNode");
-
-		this.statements = statements;
-	}
-}
-
-export class AstTemplateNode extends AstStatementNode {
-	public readonly expression: AstExpressionNode;
-
-	constructor(expression: AstExpressionNode) {
-		super("AstTemplateNode");
-		this.expression = expression;
-	}
-}
-
-export class AstLiteralNumberNode extends AstExpressionNode {
-	public readonly value: number;
-
-	constructor(value: number) {
-		super("AstLiteralNumberNode");
-		this.value = value;
-	}
-}
 
 export class UnexpectedEofError extends Error {
 	constructor() {
@@ -92,16 +50,32 @@ export class Parser {
 		return this.#tokens.shift()!;
 	}
 
-	#parseExpression(): AstExpressionNode {
-		const token = this.#eat("LITERAL_NUMBER");
+	#parseExpressionFactor(): AstExpressionNode {
+		const number = this.#eat("LITERAL_NUMBER");
 
-		return new AstLiteralNumberNode(Number(token.value));
+		// @FIXME: check that the value is a valid number
+		return new AstLiteralNumberNode(Number(number.value));
+	}
+
+	#parseBinaryExpression(): AstExpressionNode {
+		const operators = ["OP_PLUS", "OP_MINUS", "OP_MUL", "OP_DIV"];
+		let left = this.#parseExpressionFactor();
+
+		while (operators.includes(this.#current().kind)) {
+			const operator = this.#eat(this.#current().kind);
+			const right = this.#parseExpressionFactor();
+			const binaryExpression = new AstBinaryExpressionNode(left, new AstBinaryOperatorNode(operator.value), right);
+
+			left = binaryExpression;
+		}
+
+		return left;
 	}
 
 	#parseTemplate(): AstTemplateNode {
 		this.#eat("TEMPLATE_START");
 
-		const expression = this.#parseExpression();
+		const expression = this.#parseBinaryExpression();
 
 		this.#eat("TEMPLATE_END");
 
