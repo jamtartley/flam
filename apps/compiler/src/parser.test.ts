@@ -93,6 +93,41 @@ test("Parser emits an AstBinaryExpressionNode for a nested addition inside templ
 	);
 });
 
+test("Parser handles precedence in an AstBinaryExpressionNode", () => {
+	const tokens: Token[] = [
+		{ kind: "TEMPLATE_START", value: "{=", site: { line: 1, col: 1 } },
+		{ kind: "LITERAL_NUMBER", value: "42", site: { line: 1, col: 4 } },
+		{ kind: "OP_PLUS", value: "+", site: { line: 1, col: 5 } },
+		{ kind: "LITERAL_NUMBER", value: "21", site: { line: 1, col: 6 } },
+		{ kind: "OP_MULTIPLY", value: "*", site: { line: 1, col: 7 } },
+		{ kind: "LITERAL_NUMBER", value: "7", site: { line: 1, col: 8 } },
+		{ kind: "OP_MINUS", value: "-", site: { line: 1, col: 9 } },
+		{ kind: "LITERAL_NUMBER", value: "1", site: { line: 1, col: 10 } },
+		{ kind: "TEMPLATE_END", value: "=}", site: { line: 1, col: 12 } },
+		{ kind: "EOF", value: "", site: { line: 1, col: 13 } },
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstTemplateNode(
+			new AstBinaryExpressionNode(
+				new AstBinaryExpressionNode(
+					new AstLiteralNumberNode(42),
+					new AstBinaryOperatorNode("+"),
+					new AstBinaryExpressionNode(
+						new AstLiteralNumberNode(21),
+						new AstBinaryOperatorNode("*"),
+						new AstLiteralNumberNode(7)
+					)
+				),
+				new AstBinaryOperatorNode("-"),
+				new AstLiteralNumberNode(1)
+			)
+		)
+	);
+});
+
 test("Parser throws an UnexpectedTokenError if starting with a TEMPLATE_END token", () => {
 	const tokens: Token[] = [
 		{ kind: "TEMPLATE_END", value: "=}", site: { line: 1, col: 1 } },
