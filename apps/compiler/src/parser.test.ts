@@ -137,7 +137,7 @@ test("Parser handles precedence in an AstBinaryExpressionNode with parentheses",
 		{ kind: "LITERAL_NUMBER", value: "21", site: { line: 1, col: 6 } },
 		{ kind: "OP_PLUS", value: "+", site: { line: 1, col: 7 } },
 		{ kind: "LITERAL_NUMBER", value: "7", site: { line: 1, col: 8 } },
-		{ kind: "R_PAREN", value: "(", site: { line: 1, col: 6 } },
+		{ kind: "R_PAREN", value: ")", site: { line: 1, col: 6 } },
 		{ kind: "TEMPLATE_END", value: "=}", site: { line: 1, col: 12 } },
 		{ kind: "EOF", value: "", site: { line: 1, col: 13 } },
 	];

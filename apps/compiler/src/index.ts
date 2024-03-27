@@ -1,7 +1,9 @@
+import { Compiler } from "./compiler";
 import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 
-const tokenizer = new Tokenizer("{= 42 + 21 * 7 - 1 =}").tokenize();
+const tokenizer = new Tokenizer("{= 42 + 21 =}").tokenize();
 const parser = new Parser(tokenizer.tokens).parse();
+const compiler = new Compiler(parser);
 
-console.log(JSON.stringify(parser.rootNode, null, 2));
+console.log(compiler.compile());
