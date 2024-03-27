@@ -48,23 +48,26 @@ const COMMENT_START = "{#";
 const COMMENT_END = "#}";
 
 export class Tokenizer {
+	#fileContents: string;
 	#index: number = 0;
 	#site: TokenSite = { line: 1, col: 1 };
 
 	public tokens: Token[] = [];
 
-	constructor(private readonly fileContents: string) {}
+	constructor(fileContents: string) {
+		this.#fileContents = fileContents;
+	}
 
 	#current(length: number = 1): string {
 		const start = this.#index;
 
-		return this.fileContents.slice(start, start + length);
+		return this.#fileContents.slice(start, start + length);
 	}
 
 	#next(length: number = 1): string {
 		const start = this.#index + 1;
 
-		return this.fileContents.slice(start, start + length);
+		return this.#fileContents.slice(start, start + length);
 	}
 
 	#append(kind: TokenKind, value: string, site: TokenSite): void {
@@ -74,7 +77,7 @@ export class Tokenizer {
 	#advance(length: number = 1): void {
 		const newLine = this.#current() === "\n";
 
-		this.#index = Math.min(this.#index + length, this.fileContents.length);
+		this.#index = Math.min(this.#index + length, this.#fileContents.length);
 		this.#site = {
 			line: newLine ? this.#site.line + 1 : this.#site.line,
 			col: newLine ? 1 : this.#site.col + length,
@@ -82,7 +85,7 @@ export class Tokenizer {
 	}
 
 	#advanceUntil(terminator: () => boolean): void {
-		while (!terminator() && this.#index < this.fileContents.length) {
+		while (!terminator() && this.#index < this.#fileContents.length) {
 			this.#advance();
 		}
 	}
@@ -101,7 +104,7 @@ export class Tokenizer {
 		const endRawStarts = [TEMPLATE_START, CONTROL_START, COMMENT_START];
 		this.#advanceUntil(() => endRawStarts.some((s) => this.#current(s.length) === s));
 
-		this.#append("RAW", this.fileContents.slice(startIndex, this.#index), site);
+		this.#append("RAW", this.#fileContents.slice(startIndex, this.#index), site);
 	}
 
 	#tokenizeNumber(): void {
@@ -110,7 +113,7 @@ export class Tokenizer {
 
 		this.#advanceUntil(() => !this.#isCurrentDigit());
 
-		this.#append("LITERAL_NUMBER", this.fileContents.slice(startIndex, this.#index), site);
+		this.#append("LITERAL_NUMBER", this.#fileContents.slice(startIndex, this.#index), site);
 	}
 
 	#tokenizeIdentifier(): void {
@@ -120,7 +123,7 @@ export class Tokenizer {
 
 		this.#advanceUntil(() => endRegex.test(this.#current()));
 
-		this.#append("LITERAL_IDENTIFIER", this.fileContents.slice(startIndex, this.#index), site);
+		this.#append("LITERAL_IDENTIFIER", this.#fileContents.slice(startIndex, this.#index), site);
 	}
 
 	#tokenizeString(): void {
@@ -130,7 +133,7 @@ export class Tokenizer {
 		const startIndex = this.#index;
 		this.#advanceUntil(() => this.#current() === '"');
 
-		this.#append("LITERAL_STRING", this.fileContents.slice(startIndex, this.#index), site);
+		this.#append("LITERAL_STRING", this.#fileContents.slice(startIndex, this.#index), site);
 		this.#advance();
 	}
 
@@ -163,7 +166,7 @@ export class Tokenizer {
 	}
 
 	#tokenizeInsideTags(endTag: string): void {
-		while (this.#current(endTag.length) !== endTag && this.#index < this.fileContents.length) {
+		while (this.#current(endTag.length) !== endTag && this.#index < this.#fileContents.length) {
 			const site = { ...this.#site };
 
 			switch (this.#current()) {
@@ -255,7 +258,7 @@ export class Tokenizer {
 	}
 
 	public tokenize(): Tokenizer {
-		while (this.#index < this.fileContents.length) {
+		while (this.#index < this.#fileContents.length) {
 			if (this.#current(2) === TEMPLATE_START) {
 				this.#tokenizeTemplate();
 			} else if (this.#current(2) === CONTROL_START) {
