@@ -58,15 +58,14 @@ export class Parser {
 	}
 
 	#parseBinaryExpression(): AstExpressionNode {
-		const operators = ["OP_PLUS", "OP_MINUS", "OP_MUL", "OP_DIV"];
+		const binaryOperators = ["OP_PLUS", "OP_MINUS", "OP_MUL", "OP_DIV"];
 		let left = this.#parseExpressionFactor();
 
-		while (operators.includes(this.#current().kind)) {
+		while (binaryOperators.includes(this.#current().kind)) {
 			const operator = this.#eat(this.#current().kind);
 			const right = this.#parseExpressionFactor();
-			const binaryExpression = new AstBinaryExpressionNode(left, new AstBinaryOperatorNode(operator.value), right);
 
-			left = binaryExpression;
+			left = new AstBinaryExpressionNode(left, new AstBinaryOperatorNode(operator.value), right);
 		}
 
 		return left;
