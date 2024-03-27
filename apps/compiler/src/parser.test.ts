@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Token } from "./tokenizer";
-import { Parser } from "./parser";
+import { AstLiteralNumberNode, AstTemplateNode, Parser } from "./parser";
 
 test("Parser emits a single AstRootNode", () => {
 	const tokens: Token[] = [
@@ -26,6 +26,18 @@ test("Parser emits an AstTemplateNode", () => {
 
 	assert.ok(parser.rootNode.statements[0] !== undefined);
 	assert.ok(parser.rootNode.statements[0].kind === "AstTemplateNode");
+});
+
+test("Parser emits an AstLiteralNumberNode inside template", () => {
+	const tokens: Token[] = [
+		{ kind: "TEMPLATE_START", value: "{=", site: { line: 1, col: 1 } },
+		{ kind: "LITERAL_NUMBER", value: "42", site: { line: 1, col: 4 } },
+		{ kind: "TEMPLATE_END", value: "=}", site: { line: 1, col: 6 } },
+		{ kind: "EOF", value: "", site: { line: 1, col: 8 } },
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(parser.rootNode.statements[0], new AstTemplateNode(new AstLiteralNumberNode(42)));
 });
 
 test("Parser throws an UnexpectedTokenError if starting with a TEMPLATE_END token", () => {

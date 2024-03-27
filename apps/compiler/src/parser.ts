@@ -1,22 +1,54 @@
 import { Token, TokenKind } from "./tokenizer";
 
-type NodeType = "AstTemplateNode" | "AstRootNode";
+type NodeType = "AstTemplateNode" | "AstLiteralNumberNode" | "AstRootNode";
 
-type AstNode = {
-	kind: NodeType;
-};
+abstract class AstNode {
+	public readonly kind: NodeType;
 
-type AstStatementNode = AstNode & {};
-type AstExpressionNode = AstNode & {};
+	constructor(kind: NodeType) {
+		this.kind = kind;
+	}
+}
 
-type AstRootNode = AstNode & {
-	kind: "AstRootNode";
-	statements: AstStatementNode[];
-};
+abstract class AstStatementNode extends AstNode {
+	constructor(kind: NodeType) {
+		super(kind);
+	}
+}
 
-type AstTemplateNode = AstStatementNode & {
-	kind: "AstTemplateNode";
-};
+abstract class AstExpressionNode extends AstNode {
+	constructor(kind: NodeType) {
+		super(kind);
+	}
+}
+
+class AstRootNode extends AstNode {
+	public readonly statements: AstStatementNode[];
+
+	constructor(statements: AstStatementNode[]) {
+		super("AstRootNode");
+
+		this.statements = statements;
+	}
+}
+
+export class AstTemplateNode extends AstStatementNode {
+	public readonly expression: AstExpressionNode;
+
+	constructor(expression: AstExpressionNode) {
+		super("AstTemplateNode");
+		this.expression = expression;
+	}
+}
+
+export class AstLiteralNumberNode extends AstExpressionNode {
+	public readonly value: number;
+
+	constructor(value: number) {
+		super("AstLiteralNumberNode");
+		this.value = value;
+	}
+}
 
 export class UnexpectedEofError extends Error {
 	constructor() {
@@ -41,10 +73,7 @@ export class Parser {
 
 	constructor(tokens: Token[]) {
 		this.#tokens = tokens;
-		this.rootNode = {
-			kind: "AstRootNode",
-			statements: [],
-		};
+		this.rootNode = new AstRootNode([]);
 	}
 
 	#current(): Token {
@@ -63,12 +92,20 @@ export class Parser {
 		return this.#tokens.shift()!;
 	}
 
+	#parseExpression(): AstExpressionNode {
+		const token = this.#eat("LITERAL_NUMBER");
+
+		return new AstLiteralNumberNode(Number(token.value));
+	}
+
 	#parseTemplate(): AstTemplateNode {
 		this.#eat("TEMPLATE_START");
 
-		return {
-			kind: "AstTemplateNode",
-		};
+		const expression = this.#parseExpression();
+
+		this.#eat("TEMPLATE_END");
+
+		return new AstTemplateNode(expression);
 	}
 
 	public parse(): Parser {
