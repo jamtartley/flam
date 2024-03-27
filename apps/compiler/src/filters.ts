@@ -21,6 +21,20 @@ export class StringFilters {
 	static uppercase(x: string) {
 		return x.toUpperCase();
 	}
+
+	@register([t.string])
+	static flammify(x: string) {
+		return x
+			.split(/\s+/)
+			.map((word) => {
+				if (word.length <= 4) {
+					return "flam".slice(0, word.length);
+				} else {
+					return "fl" + "a".repeat(word.length - 2) + "m";
+				}
+			})
+			.join(" ");
+	}
 }
 
 export function applyFilter(name: string, ...args: any[]) {
