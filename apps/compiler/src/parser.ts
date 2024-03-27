@@ -7,7 +7,7 @@ import {
 	AstLiteralStringNode,
 	AstRootNode,
 	AstTemplateNode,
-} from "./astNodes";
+} from "./ast";
 import { Token, TokenKind } from "./tokenizer";
 
 export class UnexpectedEofError extends Error {

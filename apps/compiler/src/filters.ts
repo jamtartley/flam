@@ -18,6 +18,11 @@ export class NumberFilters {
 
 export class StringFilters {
 	@register([t.string])
+	static lowercase(x: string) {
+		return x.toUpperCase();
+	}
+
+	@register([t.string])
 	static uppercase(x: string) {
 		return x.toUpperCase();
 	}
