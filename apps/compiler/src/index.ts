@@ -4,6 +4,6 @@ import { Tokenizer } from "./tokenizer";
 
 const tokenizer = new Tokenizer("{= 42 + 21 =}").tokenize();
 const parser = new Parser(tokenizer.tokens).parse();
-const compiler = new Compiler(parser);
+const compiler = new Compiler(parser.rootNode);
 
 console.log(compiler.compile());

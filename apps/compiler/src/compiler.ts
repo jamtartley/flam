@@ -7,9 +7,26 @@ import {
 	AstTemplateNode,
 } from "./astNodes";
 
+type ValueKind = "number" | "string" | "operator";
+
 export type RuntimeValue = {
-	kind: string;
+	kind: ValueKind;
 	value: any;
+};
+
+export type StringValue = RuntimeValue & {
+	kind: "string";
+	value: string;
+};
+
+export type NumberValue = RuntimeValue & {
+	kind: "number";
+	value: number;
+};
+
+export type OperatorValue = RuntimeValue & {
+	kind: "operator";
+	value: string;
 };
 
 export interface Visitor {
@@ -28,7 +45,7 @@ export class Compiler implements Visitor {
 		this.#rootNode = rootNode;
 	}
 
-	visitRootNode(root: AstRootNode): RuntimeValue {
+	visitRootNode(root: AstRootNode): StringValue {
 		let output = "";
 
 		for (const statement of root.statements) {
@@ -70,11 +87,11 @@ export class Compiler implements Visitor {
 		}
 	}
 
-	visitBinaryOperatorNode(binaryOperator: AstBinaryOperatorNode): RuntimeValue {
+	visitBinaryOperatorNode(binaryOperator: AstBinaryOperatorNode): OperatorValue {
 		return { kind: "operator", value: binaryOperator.operator };
 	}
 
-	visitLiteralNumberNode(literalNumber: AstLiteralNumberNode): RuntimeValue {
+	visitLiteralNumberNode(literalNumber: AstLiteralNumberNode): NumberValue {
 		return { kind: "number", value: literalNumber.value };
 	}
 
