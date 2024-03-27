@@ -7,6 +7,7 @@ import {
 	AstRootNode,
 	AstTemplateNode,
 } from "./astNodes";
+import { filters } from "./filters";
 
 type ValueKind = "number" | "string" | "filter" | "variable" | "operator";
 
@@ -38,8 +39,6 @@ export type IdentifierValue = FilterValue | VariableValue;
 export type OperatorValue = RuntimeValue<string> & {
 	kind: "operator";
 };
-
-const builtinFilters = new Map<string, Function>([["double", (x: number) => x * 2]]);
 
 function isNumberValue(value: RuntimeValue<unknown>): value is NumberValue {
 	return value.kind === "number";
@@ -128,8 +127,8 @@ export class Compiler implements Visitor {
 	}
 
 	visitLiteralIdentifierNode(identifier: AstLiteralIdentifierNode): IdentifierValue {
-		if (builtinFilters.has(identifier.name)) {
-			const builtin = builtinFilters.get(identifier.name)!;
+		if (filters.has(identifier.name)) {
+			const builtin = filters.get(identifier.name)!;
 
 			return { kind: "filter", value: builtin };
 		}
