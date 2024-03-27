@@ -4,6 +4,7 @@ import { Compiler } from "./compiler";
 import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,
+	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstRootNode,
 	AstTemplateNode,
@@ -80,4 +81,22 @@ test("Compiler outputs value of 42 + (10 / (4 - 1))", () => {
 	const output = compiler.compile();
 
 	assert.equal(output, "45.333333333333336");
+});
+
+test("Compiler outputs value of piped expression", () => {
+	const compiler = new Compiler(
+		new AstRootNode([
+			new AstTemplateNode(
+				new AstBinaryExpressionNode(
+					new AstLiteralNumberNode(21),
+					new AstBinaryOperatorNode("OP_PIPE"),
+					new AstLiteralIdentifierNode("double")
+				)
+			),
+		])
+	);
+
+	const output = compiler.compile();
+
+	assert.equal(output, "42");
 });

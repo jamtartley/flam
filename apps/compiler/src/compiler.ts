@@ -8,7 +8,7 @@ import {
 	AstTemplateNode,
 } from "./astNodes";
 
-type ValueKind = "number" | "string" | "identifier" | "operator";
+type ValueKind = "number" | "string" | "filter" | "variable" | "operator";
 
 export type RuntimeValue<T> = {
 	kind: ValueKind;
@@ -25,20 +25,28 @@ export type NumberValue = RuntimeValue<number> & {
 	value: number;
 };
 
-export type IdentifierValue = RuntimeValue<string> & {
-	kind: "identifier";
+export type FilterValue = RuntimeValue<Function> & {
+	kind: "filter";
 };
+
+export type VariableValue = RuntimeValue<string> & {
+	kind: "variable";
+};
+
+export type IdentifierValue = FilterValue | VariableValue;
 
 export type OperatorValue = RuntimeValue<string> & {
 	kind: "operator";
 };
 
-function isIdenfitiferValue(value: RuntimeValue<unknown>): value is IdentifierValue {
-	return value.kind === "identifier";
-}
+const builtinFilters = new Map<string, Function>([["double", (x: number) => x * 2]]);
 
 function isNumberValue(value: RuntimeValue<unknown>): value is NumberValue {
 	return value.kind === "number";
+}
+
+function isFilterValue(value: RuntimeValue<unknown>): value is FilterValue {
+	return value.kind === "filter";
 }
 
 function isOperatorValue(value: RuntimeValue<unknown>): value is OperatorValue {
@@ -102,8 +110,9 @@ export class Compiler implements Visitor {
 		} else {
 			switch (operator.value) {
 				case "OP_PIPE":
-					console.log({ left, right, operator });
-					return { kind: "string", value: `${left.value}${right.value}` };
+					if (isFilterValue(right)) {
+						return { kind: "number", value: right.value(left.value) };
+					}
 				default:
 					throw new Error(`Unexpected operator: ${operator.value}`);
 			}
@@ -118,8 +127,14 @@ export class Compiler implements Visitor {
 		return { kind: "number", value: literalNumber.value };
 	}
 
-	visitLiteralIdentifierNode(identifier: AstLiteralIdentifierNode): StringValue {
-		return { kind: "string", value: identifier.name };
+	visitLiteralIdentifierNode(identifier: AstLiteralIdentifierNode): IdentifierValue {
+		if (builtinFilters.has(identifier.name)) {
+			const builtin = builtinFilters.get(identifier.name)!;
+
+			return { kind: "filter", value: builtin };
+		}
+
+		return { kind: "variable", value: identifier.name };
 	}
 
 	compile(): string {
