@@ -17,8 +17,9 @@ export class UnexpectedEofError extends Error {
 }
 
 export class UnexpectedTokenError extends Error {
-	constructor(expected: TokenKind, got: TokenKind) {
-		super(`Unexpected token - expected: ${expected} but got ${got}`);
+	constructor(expected: TokenKind | TokenKind[], got: TokenKind) {
+		const expectedStr = Array.isArray(expected) ? `[${expected.join(" or ")}]` : expected;
+		super(`Unexpected token - expected: ${expectedStr} but got ${got}`);
 
 		this.name = "UnexpectedTokenError";
 	}
@@ -64,10 +65,21 @@ export class Parser {
 	}
 
 	#parseExpressionFactor(): AstExpressionNode {
-		const number = this.#eat("LITERAL_NUMBER");
+		switch (this.#current().kind) {
+			case "LITERAL_NUMBER":
+				const number = this.#eat("LITERAL_NUMBER");
+				const value = parseFloat(number.value);
 
-		// @FIXME: check that the value is a valid number
-		return new AstLiteralNumberNode(Number(number.value));
+				return new AstLiteralNumberNode(value);
+			case "L_PAREN":
+				this.#eat("L_PAREN");
+				const expression = this.#parseBinaryExpression(this.#parseExpressionFactor(), 0);
+				this.#eat("R_PAREN");
+
+				return expression;
+			default:
+				throw new UnexpectedTokenError(["L_PAREN", "LITERAL_NUMBER"], this.#current().kind);
+		}
 	}
 
 	#parseBinaryExpression(left: AstExpressionNode, minPrecedence: number): AstExpressionNode {
