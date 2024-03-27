@@ -37,6 +37,10 @@ importers:
         version: 1.13.0
 
   apps/compiler:
+    dependencies:
+      io-ts:
+        specifier: ^2.2.21
+        version: 2.2.21(fp-ts@2.16.5)
     devDependencies:
       '@types/node':
         specifier: ^20.11.30
@@ -2999,6 +3003,10 @@ packages:
       signal-exit: 4.1.0
     dev: true
 
+  /fp-ts@2.16.5:
+    resolution: {integrity: sha512-N8T8PwMSeTKKtkm9lkj/zSTAnPC/aJIIrQhnHxxkL0KLsRCNUPANksJOlMXxcKKCo7H1ORP3No9EMD+fP0tsdA==}
+    dev: false
+
   /fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
     dev: true
@@ -3369,6 +3377,14 @@ packages:
       hasown: 2.0.0
       side-channel: 1.0.4
     dev: true
+
+  /io-ts@2.2.21(fp-ts@2.16.5):
+    resolution: {integrity: sha512-zz2Z69v9ZIC3mMLYWIeoUcwWD6f+O7yP92FMVVaXEOSZH1jnVBmET/urd/uoarD1WGBY4rCj8TAyMPzsGNzMFQ==}
+    peerDependencies:
+      fp-ts: ^2.5.0
+    dependencies:
+      fp-ts: 2.16.5
+    dev: false
 
   /is-array-buffer@3.0.2:
     resolution: {integrity: sha512-y+FyyR/w8vfIRq4eQcM1EYgSTnmHXPqaF+IgzgraytCFq5Xh8lllDVmAZolPJiZttZLeFSINPYMaEJ7/vWUa1w==}
