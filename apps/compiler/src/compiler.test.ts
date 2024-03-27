@@ -23,7 +23,7 @@ test("Compiler outputs value of 42 + 21", () => {
 			new AstTemplateNode(
 				new AstBinaryExpressionNode(
 					new AstLiteralNumberNode(42),
-					new AstBinaryOperatorNode("+"),
+					new AstBinaryOperatorNode("OP_PLUS"),
 					new AstLiteralNumberNode(21)
 				)
 			),
@@ -40,10 +40,10 @@ test("Compiler outputs value of 42 * (21 + 7)", () => {
 		new AstTemplateNode(
 			new AstBinaryExpressionNode(
 				new AstLiteralNumberNode(42),
-				new AstBinaryOperatorNode("*"),
+				new AstBinaryOperatorNode("OP_MULTIPLY"),
 				new AstBinaryExpressionNode(
 					new AstLiteralNumberNode(21),
-					new AstBinaryOperatorNode("+"),
+					new AstBinaryOperatorNode("OP_PLUS"),
 					new AstLiteralNumberNode(7)
 				)
 			)
@@ -62,13 +62,13 @@ test("Compiler outputs value of 42 + (10 / (4 - 1))", () => {
 			new AstTemplateNode(
 				new AstBinaryExpressionNode(
 					new AstLiteralNumberNode(42),
-					new AstBinaryOperatorNode("+"),
+					new AstBinaryOperatorNode("OP_PLUS"),
 					new AstBinaryExpressionNode(
 						new AstLiteralNumberNode(10),
-						new AstBinaryOperatorNode("/"),
+						new AstBinaryOperatorNode("OP_DIVIDE"),
 						new AstBinaryExpressionNode(
 							new AstLiteralNumberNode(4),
-							new AstBinaryOperatorNode("-"),
+							new AstBinaryOperatorNode("OP_MINUS"),
 							new AstLiteralNumberNode(1)
 						)
 					)

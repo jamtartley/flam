@@ -2,6 +2,7 @@ import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,
 	AstExpressionNode,
+	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstRootNode,
 	AstTemplateNode,
@@ -59,6 +60,8 @@ export class Parser {
 			case "OP_PLUS":
 			case "OP_MINUS":
 				return 1;
+			case "OP_PIPE":
+				return 0;
 			default:
 				return -1;
 		}
@@ -66,27 +69,32 @@ export class Parser {
 
 	#parseExpressionFactor(): AstExpressionNode {
 		switch (this.#current().kind) {
-			case "LITERAL_NUMBER":
+			case "LITERAL_IDENTIFIER": {
+				const value = this.#eat("LITERAL_IDENTIFIER").value;
+				return new AstLiteralIdentifierNode(value);
+			}
+			case "LITERAL_NUMBER": {
 				const number = this.#eat("LITERAL_NUMBER");
 				const value = parseFloat(number.value);
 
 				return new AstLiteralNumberNode(value);
-			case "L_PAREN":
+			}
+			case "L_PAREN": {
 				this.#eat("L_PAREN");
 				const expression = this.#parseBinaryExpression(this.#parseExpressionFactor(), 0);
 				this.#eat("R_PAREN");
 
 				return expression;
-			default:
+			}
+			default: {
 				throw new UnexpectedTokenError(["L_PAREN", "LITERAL_NUMBER"], this.#current().kind);
+			}
 		}
 	}
 
 	#parseBinaryExpression(left: AstExpressionNode, minPrecedence: number): AstExpressionNode {
-		const binaryOperators: TokenKind[] = ["OP_PLUS", "OP_MINUS", "OP_MULTIPLY", "OP_DIVIDE"];
-
 		while (
-			binaryOperators.includes(this.#current().kind) &&
+			this.#current().flag === "BINARY_OPERATOR" &&
 			this.#getOperatorPrecedence(this.#current()) >= minPrecedence
 		) {
 			const op = this.#eat(this.#current().kind);
@@ -96,7 +104,7 @@ export class Parser {
 				right = this.#parseBinaryExpression(right, this.#getOperatorPrecedence(this.#current()));
 			}
 
-			left = new AstBinaryExpressionNode(left, new AstBinaryOperatorNode(op.value), right);
+			left = new AstBinaryExpressionNode(left, new AstBinaryOperatorNode(op.kind), right);
 		}
 
 		return left;
