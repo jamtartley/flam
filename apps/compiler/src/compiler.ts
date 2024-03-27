@@ -6,7 +6,6 @@ import {
 	AstRootNode,
 	AstTemplateNode,
 } from "./astNodes";
-import { Parser } from "./parser";
 
 export type RuntimeValue = {
 	kind: string;
@@ -23,10 +22,10 @@ export interface Visitor {
 }
 
 export class Compiler implements Visitor {
-	readonly #parser: Parser;
+	readonly #rootNode: AstRootNode;
 
-	constructor(parser: Parser) {
-		this.#parser = parser;
+	constructor(rootNode: AstRootNode) {
+		this.#rootNode = rootNode;
 	}
 
 	visitRootNode(root: AstRootNode): RuntimeValue {
@@ -80,8 +79,6 @@ export class Compiler implements Visitor {
 	}
 
 	compile(): string {
-		const output = this.#parser.rootNode.accept(this);
-
-		return output.value;
+		return this.#rootNode.accept(this).value;
 	}
 }
