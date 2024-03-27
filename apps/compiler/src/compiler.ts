@@ -2,40 +2,57 @@ import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,
 	AstExpressionNode,
+	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstRootNode,
 	AstTemplateNode,
 } from "./astNodes";
 
-type ValueKind = "number" | "string" | "operator";
+type ValueKind = "number" | "string" | "identifier" | "operator";
 
-export type RuntimeValue = {
+export type RuntimeValue<T> = {
 	kind: ValueKind;
-	value: any;
+	value: T;
 };
 
-export type StringValue = RuntimeValue & {
+export type StringValue = RuntimeValue<string> & {
 	kind: "string";
 	value: string;
 };
 
-export type NumberValue = RuntimeValue & {
+export type NumberValue = RuntimeValue<number> & {
 	kind: "number";
 	value: number;
 };
 
-export type OperatorValue = RuntimeValue & {
-	kind: "operator";
-	value: string;
+export type IdentifierValue = RuntimeValue<string> & {
+	kind: "identifier";
 };
 
+export type OperatorValue = RuntimeValue<string> & {
+	kind: "operator";
+};
+
+function isIdenfitiferValue(value: RuntimeValue<unknown>): value is IdentifierValue {
+	return value.kind === "identifier";
+}
+
+function isNumberValue(value: RuntimeValue<unknown>): value is NumberValue {
+	return value.kind === "number";
+}
+
+function isOperatorValue(value: RuntimeValue<unknown>): value is OperatorValue {
+	return value.kind === "operator";
+}
+
 export interface Visitor {
-	visitRootNode(root: AstRootNode): RuntimeValue;
-	visitTemplateNode(template: AstTemplateNode): RuntimeValue;
-	visitExpressionNode(expression: AstExpressionNode): RuntimeValue;
-	visitBinaryExpressionNode(binaryExpression: AstBinaryExpressionNode): RuntimeValue;
-	visitBinaryOperatorNode(binaryOperator: AstBinaryOperatorNode): RuntimeValue;
-	visitLiteralNumberNode(literalNumber: AstLiteralNumberNode): RuntimeValue;
+	visitRootNode(root: AstRootNode): StringValue;
+	visitTemplateNode(template: AstTemplateNode): RuntimeValue<unknown>;
+	visitExpressionNode(expression: AstExpressionNode): RuntimeValue<unknown>;
+	visitBinaryExpressionNode(binaryExpression: AstBinaryExpressionNode): RuntimeValue<unknown>;
+	visitBinaryOperatorNode(binaryOperator: AstBinaryOperatorNode): OperatorValue;
+	visitLiteralNumberNode(literalNumber: AstLiteralNumberNode): RuntimeValue<unknown>;
+	visitLiteralIdentifierNode(identifier: AstLiteralIdentifierNode): RuntimeValue<unknown>;
 }
 
 export class Compiler implements Visitor {
@@ -56,34 +73,40 @@ export class Compiler implements Visitor {
 		return { kind: "string", value: output };
 	}
 
-	visitTemplateNode(template: AstTemplateNode): RuntimeValue {
+	visitTemplateNode(template: AstTemplateNode): RuntimeValue<unknown> {
 		return template.expression.accept(this);
 	}
 
-	visitExpressionNode(expression: AstExpressionNode): RuntimeValue {
+	visitExpressionNode(expression: AstExpressionNode): RuntimeValue<unknown> {
 		return expression.accept(this);
 	}
 
-	visitBinaryExpressionNode(literalNumber: AstBinaryExpressionNode): RuntimeValue {
-		const left = literalNumber.left.accept(this);
-		const right = literalNumber.right.accept(this);
-		const operator = literalNumber.operator.accept(this);
+	visitBinaryExpressionNode(binaryExpression: AstBinaryExpressionNode): RuntimeValue<unknown> {
+		const left = binaryExpression.left.accept(this);
+		const right = binaryExpression.right.accept(this);
+		const operator = binaryExpression.operator.accept(this);
 
-		if (left.kind !== "number" || right.kind !== "number") {
-			throw new Error("Unexpected binary expression kind");
-		}
-
-		switch (operator.value) {
-			case "+":
-				return { kind: "number", value: left.value + right.value };
-			case "-":
-				return { kind: "number", value: left.value - right.value };
-			case "*":
-				return { kind: "number", value: left.value * right.value };
-			case "/":
-				return { kind: "number", value: left.value / right.value };
-			default:
-				throw new Error(`Unknown operator: ${operator.value}`);
+		if (isNumberValue(left) && isNumberValue(right) && isOperatorValue(operator)) {
+			switch (operator.value) {
+				case "OP_PLUS":
+					return { kind: "number", value: left.value + right.value };
+				case "OP_MINUS":
+					return { kind: "number", value: left.value - right.value };
+				case "OP_MULTIPLY":
+					return { kind: "number", value: left.value * right.value };
+				case "OP_DIVIDE":
+					return { kind: "number", value: left.value / right.value };
+				default:
+					throw new Error(`Unexpected operator: ${operator.value}`);
+			}
+		} else {
+			switch (operator.value) {
+				case "OP_PIPE":
+					console.log({ left, right, operator });
+					return { kind: "string", value: `${left.value}${right.value}` };
+				default:
+					throw new Error(`Unexpected operator: ${operator.value}`);
+			}
 		}
 	}
 
@@ -93,6 +116,10 @@ export class Compiler implements Visitor {
 
 	visitLiteralNumberNode(literalNumber: AstLiteralNumberNode): NumberValue {
 		return { kind: "number", value: literalNumber.value };
+	}
+
+	visitLiteralIdentifierNode(identifier: AstLiteralIdentifierNode): StringValue {
+		return { kind: "string", value: identifier.name };
 	}
 
 	compile(): string {

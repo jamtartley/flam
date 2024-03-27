@@ -1,16 +1,17 @@
-import { RuntimeValue, Visitor } from "./compiler";
+import { OperatorValue, RuntimeValue, StringValue, Visitor } from "./compiler";
 
 export type NodeType =
 	| "AstTemplateNode"
 	| "AstBinaryOperatorNode"
 	| "AstBinaryExpressionNode"
 	| "AstLiteralNumberNode"
+	| "AstLiteralIdentifierNode"
 	| "AstRootNode";
 
 abstract class AstNode {
 	public readonly kind: NodeType;
 
-	public abstract accept(visitor: Visitor): RuntimeValue;
+	public abstract accept(visitor: Visitor): RuntimeValue<unknown>;
 
 	constructor(kind: NodeType) {
 		this.kind = kind;
@@ -38,7 +39,7 @@ export class AstRootNode extends AstNode {
 		this.statements = statements;
 	}
 
-	public accept(visitor: Visitor): RuntimeValue {
+	public accept(visitor: Visitor): StringValue {
 		return visitor.visitRootNode(this);
 	}
 }
@@ -51,7 +52,7 @@ export class AstTemplateNode extends AstStatementNode {
 		this.expression = expression;
 	}
 
-	public accept(visitor: Visitor): RuntimeValue {
+	public accept(visitor: Visitor): RuntimeValue<unknown> {
 		return visitor.visitTemplateNode(this);
 	}
 }
@@ -64,7 +65,7 @@ export class AstBinaryOperatorNode extends AstExpressionNode {
 		this.operator = operator;
 	}
 
-	public accept(visitor: Visitor): RuntimeValue {
+	public accept(visitor: Visitor): OperatorValue {
 		return visitor.visitBinaryOperatorNode(this);
 	}
 }
@@ -82,7 +83,7 @@ export class AstBinaryExpressionNode extends AstExpressionNode {
 		this.right = right;
 	}
 
-	public accept(visitor: Visitor): RuntimeValue {
+	public accept(visitor: Visitor): RuntimeValue<unknown> {
 		return visitor.visitBinaryExpressionNode(this);
 	}
 }
@@ -95,7 +96,20 @@ export class AstLiteralNumberNode extends AstExpressionNode {
 		this.value = value;
 	}
 
-	public accept(visitor: Visitor): RuntimeValue {
+	public accept(visitor: Visitor): RuntimeValue<unknown> {
 		return visitor.visitLiteralNumberNode(this);
+	}
+}
+
+export class AstLiteralIdentifierNode extends AstExpressionNode {
+	public readonly name: string;
+
+	constructor(name: string) {
+		super("AstLiteralIdentifierNode");
+		this.name = name;
+	}
+
+	public accept(visitor: Visitor): RuntimeValue<unknown> {
+		return visitor.visitLiteralIdentifierNode(this);
 	}
 }
