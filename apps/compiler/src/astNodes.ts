@@ -1,3 +1,5 @@
+import { RuntimeValue, Visitor } from "./compiler";
+
 export type NodeType =
 	| "AstTemplateNode"
 	| "AstBinaryOperatorNode"
@@ -7,6 +9,8 @@ export type NodeType =
 
 abstract class AstNode {
 	public readonly kind: NodeType;
+
+	public abstract accept(visitor: Visitor): RuntimeValue;
 
 	constructor(kind: NodeType) {
 		this.kind = kind;
@@ -33,6 +37,10 @@ export class AstRootNode extends AstNode {
 
 		this.statements = statements;
 	}
+
+	public accept(visitor: Visitor): RuntimeValue {
+		return visitor.visitRootNode(this);
+	}
 }
 
 export class AstTemplateNode extends AstStatementNode {
@@ -42,6 +50,10 @@ export class AstTemplateNode extends AstStatementNode {
 		super("AstTemplateNode");
 		this.expression = expression;
 	}
+
+	public accept(visitor: Visitor): RuntimeValue {
+		return visitor.visitTemplateNode(this);
+	}
 }
 
 export class AstBinaryOperatorNode extends AstExpressionNode {
@@ -50,6 +62,10 @@ export class AstBinaryOperatorNode extends AstExpressionNode {
 	constructor(operator: string) {
 		super("AstBinaryOperatorNode");
 		this.operator = operator;
+	}
+
+	public accept(visitor: Visitor): RuntimeValue {
+		return visitor.visitBinaryOperatorNode(this);
 	}
 }
 
@@ -65,6 +81,10 @@ export class AstBinaryExpressionNode extends AstExpressionNode {
 		this.operator = operator;
 		this.right = right;
 	}
+
+	public accept(visitor: Visitor): RuntimeValue {
+		return visitor.visitBinaryExpressionNode(this);
+	}
 }
 
 export class AstLiteralNumberNode extends AstExpressionNode {
@@ -73,5 +93,9 @@ export class AstLiteralNumberNode extends AstExpressionNode {
 	constructor(value: number) {
 		super("AstLiteralNumberNode");
 		this.value = value;
+	}
+
+	public accept(visitor: Visitor): RuntimeValue {
+		return visitor.visitLiteralNumberNode(this);
 	}
 }
