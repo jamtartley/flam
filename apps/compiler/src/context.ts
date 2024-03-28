@@ -1,11 +1,21 @@
 import { RuntimeValue, UnresolvedValue } from "./compiler";
 
+type ContextConstructor = {
+	parent?: Context;
+	variables?: Map<string, UnresolvedValue>;
+};
+
 export class Context {
 	public variables: Map<string, UnresolvedValue> = new Map();
 	#parent?: Context;
 
-	constructor(parent?: Context) {
-		this.#parent = parent;
+	constructor(init?: ContextConstructor) {
+		if (init) {
+			const { parent, variables } = init;
+
+			this.#parent = parent;
+			this.variables = variables ?? new Map();
+		}
 	}
 
 	add<T>(name: string, value: RuntimeValue<T>): RuntimeValue<T> {

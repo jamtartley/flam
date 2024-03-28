@@ -6,13 +6,15 @@ import {
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstLiteralStringNode,
+	AstRawTextNode,
 	AstRootNode,
+	AstStatementNode,
 	AstTemplateNode,
 } from "./ast";
 import { applyFilter, filters } from "./filters";
 import { Context } from "./context";
 
-type ValueKind = "number" | "string" | "filter" | "operator";
+type ValueKind = "number" | "string" | "boolean" | "filter" | "statements" | "operator";
 
 export type RuntimeValue<T> = {
 	kind: ValueKind;
@@ -29,6 +31,15 @@ export type StringValue = RuntimeValue<string> & {
 export type NumberValue = RuntimeValue<number> & {
 	kind: "number";
 	value: number;
+};
+
+export type BooleanValue = RuntimeValue<boolean> & {
+	kind: "boolean";
+	value: boolean;
+};
+
+export type StatementsValue = RuntimeValue<UnresolvedValue[]> & {
+	kind: "statements";
 };
 
 export type FilterValue = RuntimeValue<Function> & {
@@ -55,11 +66,11 @@ function isOperatorValue(value: UnresolvedValue): value is OperatorValue {
 
 export interface Visitor {
 	visitRootNode(root: AstRootNode): StringValue;
+	visitRawTextNode(rawText: AstRawTextNode): StringValue;
 	visitTemplateNode(template: AstTemplateNode): UnresolvedValue;
-	visitExpressionNode(expression: AstExpressionNode): UnresolvedValue;
 	visitBinaryExpressionNode(binaryExpression: AstBinaryExpressionNode): UnresolvedValue;
 	visitBinaryOperatorNode(binaryOperator: AstBinaryOperatorNode): OperatorValue;
-	visitIfNode(ifNode: AstIfNode): UnresolvedValue;
+	visitIfNode(ifNode: AstIfNode): StatementsValue;
 	visitLiteralStringNode(literalString: AstLiteralStringNode): StringValue;
 	visitLiteralNumberNode(literalNumber: AstLiteralNumberNode): NumberValue;
 	visitLiteralIdentifierNode(identifier: AstLiteralIdentifierNode): UnresolvedValue;
@@ -91,18 +102,27 @@ export class Compiler implements Visitor {
 
 		for (const statement of root.statements) {
 			const val = statement.accept(this);
-			output += val.value;
+
+			if (Array.isArray(val.value)) {
+				output += val.value.map((node) => node.value).join("");
+			} else {
+				output += val.value;
+			}
 		}
 
 		return { kind: "string", value: output };
 	}
 
-	visitTemplateNode(template: AstTemplateNode): UnresolvedValue {
-		return template.expression.accept(this);
+	visitRawTextNode(rawText: AstRawTextNode): StringValue {
+		return { kind: "string", value: rawText.value };
 	}
 
-	visitExpressionNode(expression: AstExpressionNode): UnresolvedValue {
-		return expression.accept(this);
+	visitNodes(nodes: AstStatementNode[]): UnresolvedValue[] {
+		return nodes.map((node) => node.accept(this));
+	}
+
+	visitTemplateNode(template: AstTemplateNode): UnresolvedValue {
+		return template.expression.accept(this);
 	}
 
 	visitBinaryExpressionNode(binaryExpression: AstBinaryExpressionNode): UnresolvedValue {
@@ -110,33 +130,99 @@ export class Compiler implements Visitor {
 		const right = binaryExpression.right.accept(this);
 		const operator = binaryExpression.operator.accept(this);
 
-		if (isNumberValue(left) && isNumberValue(right) && isOperatorValue(operator)) {
-			switch (operator.value) {
-				case "OP_PLUS":
-					return { kind: "number", value: left.value + right.value };
-				case "OP_MINUS":
-					return { kind: "number", value: left.value - right.value };
-				case "OP_MULTIPLY":
-					return { kind: "number", value: left.value * right.value };
-				case "OP_DIVIDE":
-					return { kind: "number", value: left.value / right.value };
-				default:
-					throw new Error(`Unexpected operator: ${operator.value}`);
+		switch (operator.value) {
+			case "OP_PIPE": {
+				if (isFilterValue(right)) {
+					return this.#applyFilter(right, left);
+				}
+
+				throw new Error(`Expected filter, got ${right.kind}`);
 			}
-		} else {
-			switch (operator.value) {
-				case "OP_PIPE":
-					if (isFilterValue(right)) {
-						return this.#applyFilter(right, left);
-					}
-				default:
-					throw new Error(`Unexpected operator: ${operator.value}`);
+			case "OP_PLUS": {
+				if (!isNumberValue(left) || !isNumberValue(right)) {
+					throw new Error(`Expected numbers, got ${left.kind}, ${right.kind}`);
+				}
+
+				return { kind: "number", value: left.value + right.value };
+			}
+			case "OP_MINUS": {
+				if (!isNumberValue(left) || !isNumberValue(right)) {
+					throw new Error(`Expected numbers, got ${left.kind}, ${right.kind}`);
+				}
+
+				return { kind: "number", value: left.value - right.value };
+			}
+			case "OP_DIVIDE": {
+				if (!isNumberValue(left) || !isNumberValue(right)) {
+					throw new Error(`Expected numbers, got ${left.kind}, ${right.kind}`);
+				}
+
+				return { kind: "number", value: left.value / right.value };
+			}
+			case "OP_MULTIPLY": {
+				if (!isNumberValue(left) || !isNumberValue(right)) {
+					throw new Error(`Expected numbers, got ${left.kind}, ${right.kind}`);
+				}
+
+				return { kind: "number", value: left.value * right.value };
+			}
+			case "OP_GT": {
+				if (!isNumberValue(left) || !isNumberValue(right)) {
+					throw new Error(`Expected numbers, got ${left.kind}, ${right.kind}`);
+				}
+
+				return { kind: "boolean", value: left.value > right.value };
+			}
+			case "OP_LT": {
+				if (!isNumberValue(left) || !isNumberValue(right)) {
+					throw new Error(`Expected numbers, got ${left.kind}, ${right.kind}`);
+				}
+
+				return { kind: "boolean", value: left.value < right.value };
+			}
+			case "OP_GTE": {
+				if (!isNumberValue(left) || !isNumberValue(right)) {
+					throw new Error(`Expected numbers, got ${left.kind}, ${right.kind}`);
+				}
+
+				return { kind: "boolean", value: left.value >= right.value };
+			}
+			case "OP_LTE": {
+				if (!isNumberValue(left) || !isNumberValue(right)) {
+					throw new Error(`Expected numbers, got ${left.kind}, ${right.kind}`);
+				}
+
+				return { kind: "boolean", value: left.value <= right.value };
+			}
+			case "OP_EQ": {
+				return { kind: "boolean", value: left.value === right.value };
+			}
+			case "OP_NE": {
+				return { kind: "boolean", value: left.value !== right.value };
 			}
 		}
+
+		throw new Error(`Unexpected values: ${left}, ${right}`);
 	}
 
-	visitIfNode(ifNode: AstIfNode): UnresolvedValue {
-		throw new Error("Method not implemented.");
+	visitIfNode(ifNode: AstIfNode): StatementsValue {
+		const condition = ifNode.condition.accept(this);
+
+		if (condition.kind !== "boolean") {
+			throw new Error(`Expected boolean, got ${condition.kind}`);
+		}
+
+		if (condition.value) {
+			return {
+				kind: "statements",
+				value: ifNode.success.map((node) => node.accept(this)),
+			};
+		} else {
+			return {
+				kind: "statements",
+				value: ifNode.failure?.map((node) => node.accept(this)) || [],
+			};
+		}
 	}
 
 	visitBinaryOperatorNode(binaryOperator: AstBinaryOperatorNode): OperatorValue {

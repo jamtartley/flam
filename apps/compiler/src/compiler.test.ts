@@ -4,9 +4,11 @@ import { Compiler } from "./compiler";
 import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,
+	AstIfNode,
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstLiteralStringNode,
+	AstRawTextNode,
 	AstRootNode,
 	AstTemplateNode,
 } from "./ast";
@@ -129,4 +131,70 @@ test("Compiler outputs value of string filter application", () => {
 	const output = compiler.compile();
 
 	assert.equal(output, "HELLO, WORLD!");
+});
+
+test("Compiler outputs success clause in if statement", () => {
+	const context = new Context({ variables: new Map([["x", { kind: "string", value: "Hello, world!" }]]) });
+	const compiler = new Compiler(
+		new AstRootNode([
+			new AstIfNode(
+				new AstBinaryExpressionNode(
+					new AstLiteralIdentifierNode("x"),
+					new AstBinaryOperatorNode("OP_EQ"),
+					new AstLiteralStringNode("Hello, world!")
+				),
+				[new AstRawTextNode("In success clause!")]
+			),
+		]),
+		context
+	);
+
+	const output = compiler.compile();
+
+	assert.equal(output, "In success clause!");
+});
+
+test("Compiler outputs multiple success clauses in if statement", () => {
+	const context = new Context({ variables: new Map([["x", { kind: "string", value: "Hello, world!" }]]) });
+	const compiler = new Compiler(
+		new AstRootNode([
+			new AstIfNode(
+				new AstBinaryExpressionNode(
+					new AstLiteralIdentifierNode("x"),
+					new AstBinaryOperatorNode("OP_EQ"),
+					new AstLiteralStringNode("Hello, world!")
+				),
+				[new AstRawTextNode("In success clause!"), new AstRawTextNode("In success clause2!")]
+			),
+		]),
+		context
+	);
+
+	const output = compiler.compile();
+
+	assert.equal(output, "In success clause!In success clause2!");
+});
+
+test("Compiler outputs failure clause in if statement", () => {
+	const context = new Context({
+		variables: new Map([["x", { kind: "string", value: "Hello, world!" }]]),
+	});
+	const compiler = new Compiler(
+		new AstRootNode([
+			new AstIfNode(
+				new AstBinaryExpressionNode(
+					new AstLiteralIdentifierNode("x"),
+					new AstBinaryOperatorNode("OP_NE"),
+					new AstLiteralStringNode("Hello, world!")
+				),
+				[new AstRawTextNode("In success clause!")],
+				[new AstRawTextNode("In failure clause!")]
+			),
+		]),
+		context
+	);
+
+	const output = compiler.compile();
+
+	assert.equal(output, "In failure clause!");
 });
