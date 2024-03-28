@@ -14,10 +14,10 @@ import {
 
 test("Parser emits a single AstRootNode", () => {
 	const tokens: Token[] = [
-		{ kind: "TEMPLATE_START", value: "{=", site: { line: 1, col: 1 } },
-		{ kind: "LITERAL_NUMBER", value: "42", site: { line: 1, col: 4 } },
-		{ kind: "TEMPLATE_END", value: "=}", site: { line: 1, col: 6 } },
-		{ kind: "EOF", value: "", site: { line: 1, col: 8 } },
+		new Token({ kind: "TEMPLATE_START", value: "{=" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "42" }),
+		new Token({ kind: "TEMPLATE_END", value: "=}" }),
+		new Token({ kind: "EOF", value: "" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -26,10 +26,10 @@ test("Parser emits a single AstRootNode", () => {
 
 test("Parser emits an AstTemplateNode", () => {
 	const tokens: Token[] = [
-		{ kind: "TEMPLATE_START", value: "{=", site: { line: 1, col: 1 } },
-		{ kind: "LITERAL_NUMBER", value: "42", site: { line: 1, col: 4 } },
-		{ kind: "TEMPLATE_END", value: "=}", site: { line: 1, col: 6 } },
-		{ kind: "EOF", value: "", site: { line: 1, col: 8 } },
+		new Token({ kind: "TEMPLATE_START", value: "{=" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "42" }),
+		new Token({ kind: "TEMPLATE_END", value: "=}" }),
+		new Token({ kind: "EOF", value: "" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -39,10 +39,10 @@ test("Parser emits an AstTemplateNode", () => {
 
 test("Parser emits an AstLiteralNumberNode inside template", () => {
 	const tokens: Token[] = [
-		{ kind: "TEMPLATE_START", value: "{=", site: { line: 1, col: 1 } },
-		{ kind: "LITERAL_NUMBER", value: "42", site: { line: 1, col: 4 } },
-		{ kind: "TEMPLATE_END", value: "=}", site: { line: 1, col: 6 } },
-		{ kind: "EOF", value: "", site: { line: 1, col: 8 } },
+		new Token({ kind: "TEMPLATE_START", value: "{=" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "42" }),
+		new Token({ kind: "TEMPLATE_END", value: "=}" }),
+		new Token({ kind: "EOF", value: "" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -51,12 +51,12 @@ test("Parser emits an AstLiteralNumberNode inside template", () => {
 
 test("Parser emits an AstBinaryExpressionNode for a simple addition inside template", () => {
 	const tokens: Token[] = [
-		{ kind: "TEMPLATE_START", value: "{=", site: { line: 1, col: 1 } },
-		{ kind: "LITERAL_NUMBER", value: "42", site: { line: 1, col: 4 } },
-		{ kind: "OP_PLUS", value: "+", site: { line: 1, col: 5 }, flag: "BINARY_OPERATOR" },
-		{ kind: "LITERAL_NUMBER", value: "21", site: { line: 1, col: 6 } },
-		{ kind: "TEMPLATE_END", value: "=}", site: { line: 1, col: 8 } },
-		{ kind: "EOF", value: "", site: { line: 1, col: 8 } },
+		new Token({ kind: "TEMPLATE_START", value: "{=" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "42" }),
+		new Token({ kind: "OP_PLUS", value: "+" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "21" }),
+		new Token({ kind: "TEMPLATE_END", value: "=}" }),
+		new Token({ kind: "EOF", value: "" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -74,14 +74,14 @@ test("Parser emits an AstBinaryExpressionNode for a simple addition inside templ
 
 test("Parser emits an AstBinaryExpressionNode for a nested addition inside template", () => {
 	const tokens: Token[] = [
-		{ kind: "TEMPLATE_START", value: "{=", site: { line: 1, col: 1 } },
-		{ kind: "LITERAL_NUMBER", value: "42", site: { line: 1, col: 4 } },
-		{ kind: "OP_PLUS", value: "+", site: { line: 1, col: 5 }, flag: "BINARY_OPERATOR" },
-		{ kind: "LITERAL_NUMBER", value: "21", site: { line: 1, col: 6 } },
-		{ kind: "OP_MINUS", value: "-", site: { line: 1, col: 7 }, flag: "BINARY_OPERATOR" },
-		{ kind: "LITERAL_NUMBER", value: "7", site: { line: 1, col: 8 } },
-		{ kind: "TEMPLATE_END", value: "=}", site: { line: 1, col: 9 } },
-		{ kind: "EOF", value: "", site: { line: 1, col: 11 } },
+		new Token({ kind: "TEMPLATE_START", value: "{=" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "42" }),
+		new Token({ kind: "OP_PLUS", value: "+" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "21" }),
+		new Token({ kind: "OP_MINUS", value: "-" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "7" }),
+		new Token({ kind: "TEMPLATE_END", value: "=}" }),
+		new Token({ kind: "EOF", value: "" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -103,16 +103,16 @@ test("Parser emits an AstBinaryExpressionNode for a nested addition inside templ
 
 test("Parser handles precedence in an AstBinaryExpressionNode", () => {
 	const tokens: Token[] = [
-		{ kind: "TEMPLATE_START", value: "{=", site: { line: 1, col: 1 } },
-		{ kind: "LITERAL_NUMBER", value: "42", site: { line: 1, col: 4 } },
-		{ kind: "OP_PLUS", value: "+", site: { line: 1, col: 5 }, flag: "BINARY_OPERATOR" },
-		{ kind: "LITERAL_NUMBER", value: "21", site: { line: 1, col: 6 } },
-		{ kind: "OP_MULTIPLY", value: "*", site: { line: 1, col: 7 }, flag: "BINARY_OPERATOR" },
-		{ kind: "LITERAL_NUMBER", value: "7", site: { line: 1, col: 8 } },
-		{ kind: "OP_MINUS", value: "-", site: { line: 1, col: 9 }, flag: "BINARY_OPERATOR" },
-		{ kind: "LITERAL_NUMBER", value: "1", site: { line: 1, col: 10 } },
-		{ kind: "TEMPLATE_END", value: "=}", site: { line: 1, col: 12 } },
-		{ kind: "EOF", value: "", site: { line: 1, col: 13 } },
+		new Token({ kind: "TEMPLATE_START", value: "{=" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "42" }),
+		new Token({ kind: "OP_PLUS", value: "+" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "21" }),
+		new Token({ kind: "OP_MULTIPLY", value: "*" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "7" }),
+		new Token({ kind: "OP_MINUS", value: "-" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "1" }),
+		new Token({ kind: "TEMPLATE_END", value: "=}" }),
+		new Token({ kind: "EOF", value: "" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -138,16 +138,16 @@ test("Parser handles precedence in an AstBinaryExpressionNode", () => {
 
 test("Parser handles precedence in an AstBinaryExpressionNode with parentheses", () => {
 	const tokens: Token[] = [
-		{ kind: "TEMPLATE_START", value: "{=", site: { line: 1, col: 1 } },
-		{ kind: "LITERAL_NUMBER", value: "42", site: { line: 1, col: 4 } },
-		{ kind: "OP_MULTIPLY", value: "*", site: { line: 1, col: 5 }, flag: "BINARY_OPERATOR" },
-		{ kind: "L_PAREN", value: "(", site: { line: 1, col: 6 } },
-		{ kind: "LITERAL_NUMBER", value: "21", site: { line: 1, col: 6 } },
-		{ kind: "OP_PLUS", value: "+", site: { line: 1, col: 7 }, flag: "BINARY_OPERATOR" },
-		{ kind: "LITERAL_NUMBER", value: "7", site: { line: 1, col: 8 } },
-		{ kind: "R_PAREN", value: ")", site: { line: 1, col: 6 } },
-		{ kind: "TEMPLATE_END", value: "=}", site: { line: 1, col: 12 } },
-		{ kind: "EOF", value: "", site: { line: 1, col: 13 } },
+		new Token({ kind: "TEMPLATE_START", value: "{=" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "42" }),
+		new Token({ kind: "OP_MULTIPLY", value: "*" }),
+		new Token({ kind: "L_PAREN", value: "(" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "21" }),
+		new Token({ kind: "OP_PLUS", value: "+" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "7" }),
+		new Token({ kind: "R_PAREN", value: ")" }),
+		new Token({ kind: "TEMPLATE_END", value: "=}" }),
+		new Token({ kind: "EOF", value: "" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -169,12 +169,12 @@ test("Parser handles precedence in an AstBinaryExpressionNode with parentheses",
 
 test("Parser accepts a pipe as a binary operator", () => {
 	const tokens: Token[] = [
-		{ kind: "TEMPLATE_START", value: "{=", site: { line: 1, col: 1 } },
-		{ kind: "LITERAL_NUMBER", value: "21", site: { line: 1, col: 3 } },
-		{ kind: "OP_PIPE", value: "|>", site: { line: 1, col: 3 }, flag: "BINARY_OPERATOR" },
-		{ kind: "LITERAL_IDENTIFIER", value: "double", site: { line: 1, col: 3 } },
-		{ kind: "TEMPLATE_END", value: "=}", site: { line: 1, col: 1 } },
-		{ kind: "EOF", value: "", site: { line: 1, col: 3 } },
+		new Token({ kind: "TEMPLATE_START", value: "{=" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "21" }),
+		new Token({ kind: "OP_PIPE", value: "|>" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "double" }),
+		new Token({ kind: "TEMPLATE_END", value: "=}" }),
+		new Token({ kind: "EOF", value: "" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -192,17 +192,17 @@ test("Parser accepts a pipe as a binary operator", () => {
 
 test("Parser handles a single if statement", () => {
 	const tokens: Token[] = [
-		{ kind: "CONTROL_START", value: "{%", site: { line: 1, col: 1 } },
-		{ kind: "KEYWORD_IF", value: "", site: { line: 1, col: 3 } },
-		{ kind: "LITERAL_IDENTIFIER", value: "x", site: { line: 1, col: 3 } },
-		{ kind: "OP_GT", value: ">", site: { line: 1, col: 3 }, flag: "BINARY_OPERATOR" },
-		{ kind: "LITERAL_NUMBER", value: "10", site: { line: 1, col: 3 } },
-		{ kind: "CONTROL_END", value: "%}", site: { line: 1, col: 1 } },
-		{ kind: "RAW", value: "In if statement", site: { line: 1, col: 1 } },
-		{ kind: "CONTROL_START", value: "{%", site: { line: 1, col: 1 } },
-		{ kind: "KEYWORD_FI", value: "", site: { line: 1, col: 3 } },
-		{ kind: "CONTROL_END", value: "%}", site: { line: 1, col: 1 } },
-		{ kind: "EOF", value: "", site: { line: 1, col: 3 } },
+		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "KEYWORD_IF", value: "" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "x" }),
+		new Token({ kind: "OP_GT", value: ">" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "10" }),
+		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "RAW", value: "In if statement" }),
+		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "KEYWORD_FI", value: "" }),
+		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "EOF", value: "" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -222,18 +222,18 @@ test("Parser handles a single if statement", () => {
 
 test("Parser handles a single if statement with multiple statements", () => {
 	const tokens: Token[] = [
-		{ kind: "CONTROL_START", value: "{%", site: { line: 1, col: 1 } },
-		{ kind: "KEYWORD_IF", value: "", site: { line: 1, col: 3 } },
-		{ kind: "LITERAL_IDENTIFIER", value: "x", site: { line: 1, col: 3 } },
-		{ kind: "OP_EQ", value: "==", site: { line: 1, col: 3 }, flag: "BINARY_OPERATOR" },
-		{ kind: "LITERAL_NUMBER", value: "10", site: { line: 1, col: 3 } },
-		{ kind: "CONTROL_END", value: "%}", site: { line: 1, col: 1 } },
-		{ kind: "RAW", value: "In if statement", site: { line: 1, col: 1 } },
-		{ kind: "RAW", value: "In if statement2", site: { line: 1, col: 1 } },
-		{ kind: "CONTROL_START", value: "{%", site: { line: 1, col: 1 } },
-		{ kind: "KEYWORD_FI", value: "", site: { line: 1, col: 3 } },
-		{ kind: "CONTROL_END", value: "%}", site: { line: 1, col: 1 } },
-		{ kind: "EOF", value: "", site: { line: 1, col: 3 } },
+		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "KEYWORD_IF", value: "" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "x" }),
+		new Token({ kind: "OP_EQ", value: "==" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "10" }),
+		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "RAW", value: "In if statement" }),
+		new Token({ kind: "RAW", value: "In if statement2" }),
+		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "KEYWORD_FI", value: "" }),
+		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "EOF", value: "" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -253,21 +253,21 @@ test("Parser handles a single if statement with multiple statements", () => {
 
 test("Parser handles an if statement with else clause", () => {
 	const tokens: Token[] = [
-		{ kind: "CONTROL_START", value: "{%", site: { line: 1, col: 1 } },
-		{ kind: "KEYWORD_IF", value: "", site: { line: 1, col: 3 } },
-		{ kind: "LITERAL_IDENTIFIER", value: "x", site: { line: 1, col: 3 } },
-		{ kind: "OP_GT", value: ">", site: { line: 1, col: 3 }, flag: "BINARY_OPERATOR" },
-		{ kind: "LITERAL_NUMBER", value: "10", site: { line: 1, col: 3 } },
-		{ kind: "CONTROL_END", value: "%}", site: { line: 1, col: 1 } },
-		{ kind: "RAW", value: "In if clause", site: { line: 1, col: 1 } },
-		{ kind: "CONTROL_START", value: "{%", site: { line: 1, col: 1 } },
-		{ kind: "KEYWORD_ELSE", value: "", site: { line: 1, col: 3 } },
-		{ kind: "CONTROL_END", value: "%}", site: { line: 1, col: 1 } },
-		{ kind: "RAW", value: "In else clause", site: { line: 1, col: 1 } },
-		{ kind: "CONTROL_START", value: "{%", site: { line: 1, col: 1 } },
-		{ kind: "KEYWORD_FI", value: "", site: { line: 1, col: 3 } },
-		{ kind: "CONTROL_END", value: "%}", site: { line: 1, col: 1 } },
-		{ kind: "EOF", value: "", site: { line: 1, col: 3 } },
+		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "KEYWORD_IF", value: "" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "x" }),
+		new Token({ kind: "OP_GT", value: ">" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "10" }),
+		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "RAW", value: "In if clause" }),
+		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "KEYWORD_ELSE", value: "" }),
+		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "RAW", value: "In else clause" }),
+		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "KEYWORD_FI", value: "" }),
+		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "EOF", value: "" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -286,10 +286,7 @@ test("Parser handles an if statement with else clause", () => {
 });
 
 test("Parser throws an UnexpectedTokenError if starting with a TEMPLATE_END token", () => {
-	const tokens: Token[] = [
-		{ kind: "TEMPLATE_END", value: "=}", site: { line: 1, col: 1 } },
-		{ kind: "EOF", value: "", site: { line: 1, col: 3 } },
-	];
+	const tokens: Token[] = [new Token({ kind: "TEMPLATE_END", value: "=}" }), new Token({ kind: "EOF", value: "" })];
 	const parser = new Parser(tokens);
 
 	assert.throws(() => parser.parse(), {

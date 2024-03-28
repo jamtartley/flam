@@ -38,19 +38,26 @@ const keywords = new Map<string, TokenKind>([
 	["fi", "KEYWORD_FI"],
 ]);
 
-type TokenFlag = "BINARY_OPERATOR";
+type TokenFlag = "BINARY_OPERATOR" | "NONE";
 
 type TokenSite = {
 	line: number;
 	col: number;
 };
 
-export type Token = {
-	kind: TokenKind;
-	value: string;
-	site: TokenSite;
-	flag?: TokenFlag;
-};
+export class Token {
+	public readonly kind: TokenKind;
+	public readonly value: string;
+	public readonly site: TokenSite;
+	public readonly flag: TokenFlag;
+
+	constructor({ kind, value, site }: { kind: TokenKind; value: string; site?: TokenSite }) {
+		this.kind = kind;
+		this.value = value;
+		this.site = site || { line: -1, col: -1 };
+		this.flag = this.kind.startsWith("OP_") ? "BINARY_OPERATOR" : "NONE";
+	}
+}
 
 const _0 = "0".charCodeAt(0);
 const _9 = "9".charCodeAt(0);
@@ -87,8 +94,8 @@ export class Tokenizer {
 		return this.#fileContents.slice(start, start + length);
 	}
 
-	#append(kind: TokenKind, value: string, site: TokenSite, flag?: TokenFlag): void {
-		this.tokens.push({ kind, value, site, flag });
+	#append(kind: TokenKind, value: string, site: TokenSite): void {
+		this.tokens.push(new Token({ kind, value, site }));
 	}
 
 	#advance(length: number = 1): void {
@@ -199,19 +206,19 @@ export class Tokenizer {
 					this.#advance();
 					continue;
 				case "+":
-					this.#append("OP_PLUS", "+", site, "BINARY_OPERATOR");
+					this.#append("OP_PLUS", "+", site);
 					this.#advance();
 					continue;
 				case "-":
-					this.#append("OP_MINUS", "-", site, "BINARY_OPERATOR");
+					this.#append("OP_MINUS", "-", site);
 					this.#advance();
 					continue;
 				case "*":
-					this.#append("OP_MULTIPLY", "*", site, "BINARY_OPERATOR");
+					this.#append("OP_MULTIPLY", "*", site);
 					this.#advance();
 					continue;
 				case "/":
-					this.#append("OP_DIVIDE", "/", site, "BINARY_OPERATOR");
+					this.#append("OP_DIVIDE", "/", site);
 					this.#advance();
 					continue;
 				case "(":
@@ -228,37 +235,37 @@ export class Tokenizer {
 					continue;
 				case ">":
 					if (this.#next() === "=") {
-						this.#append("OP_GTE", ">=", site, "BINARY_OPERATOR");
+						this.#append("OP_GTE", ">=", site);
 						this.#advance(2);
 						continue;
 					} else {
-						this.#append("OP_GT", ">", site, "BINARY_OPERATOR");
+						this.#append("OP_GT", ">", site);
 						this.#advance();
 						continue;
 					}
 				case "<":
 					if (this.#next() === "=") {
-						this.#append("OP_LTE", "<=", site, "BINARY_OPERATOR");
+						this.#append("OP_LTE", "<=", site);
 						this.#advance(2);
 						continue;
 					} else {
-						this.#append("OP_LT", "<", site, "BINARY_OPERATOR");
+						this.#append("OP_LT", "<", site);
 						this.#advance();
 						continue;
 					}
 				case "=":
 					if (this.#next() === "=") {
-						this.#append("OP_EQ", "==", site, "BINARY_OPERATOR");
+						this.#append("OP_EQ", "==", site);
 						this.#advance(2);
 						continue;
 					} else if (this.#next() === "!") {
-						this.#append("OP_NE", "=!", site, "BINARY_OPERATOR");
+						this.#append("OP_NE", "=!", site);
 						this.#advance(2);
 						continue;
 					}
 				case "|":
 					if (this.#next() === ">") {
-						this.#append("OP_PIPE", "|>", site, "BINARY_OPERATOR");
+						this.#append("OP_PIPE", "|>", site);
 						this.#advance(2);
 						continue;
 					}
