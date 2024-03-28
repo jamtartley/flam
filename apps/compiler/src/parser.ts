@@ -111,7 +111,10 @@ export class Parser {
 				return expression;
 			}
 			default: {
-				throw new UnexpectedTokenError(["L_PAREN", "LITERAL_NUMBER"], this.#current().kind);
+				throw new UnexpectedTokenError(
+					["L_PAREN", "LITERAL_NUMBER", "LITERAL_STRING", "LITERAL_IDENTIFIER"],
+					this.#current().kind
+				);
 			}
 		}
 	}
@@ -177,7 +180,7 @@ export class Parser {
 		this.#eat("KEYWORD_FI");
 		this.#eat("CONTROL_END");
 
-		return new AstIfNode(condition, success, failure.length > 0 ? failure : undefined);
+		return new AstIfNode(condition, success, failure);
 	}
 
 	#parseControl(): AstStatementNode {

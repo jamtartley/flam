@@ -1,14 +1,13 @@
 import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,
-	AstExpressionNode,
 	AstIfNode,
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstLiteralStringNode,
+	AstNode,
 	AstRawTextNode,
 	AstRootNode,
-	AstStatementNode,
 	AstTemplateNode,
 } from "./ast";
 import { applyFilter, filters } from "./filters";
@@ -56,27 +55,19 @@ function isNumberValue(value: UnresolvedValue): value is NumberValue {
 	return value.kind === "number";
 }
 
+function isStringValue(value: UnresolvedValue): value is StringValue {
+	return value.kind === "string";
+}
+
 function isFilterValue(value: UnresolvedValue): value is FilterValue {
 	return value.kind === "filter";
 }
 
-function isOperatorValue(value: UnresolvedValue): value is OperatorValue {
-	return value.kind === "operator";
+function isStatementsValue(value: UnresolvedValue): value is StatementsValue {
+	return value.kind === "statements";
 }
 
-export interface Visitor {
-	visitRootNode(root: AstRootNode): StringValue;
-	visitRawTextNode(rawText: AstRawTextNode): StringValue;
-	visitTemplateNode(template: AstTemplateNode): UnresolvedValue;
-	visitBinaryExpressionNode(binaryExpression: AstBinaryExpressionNode): UnresolvedValue;
-	visitBinaryOperatorNode(binaryOperator: AstBinaryOperatorNode): OperatorValue;
-	visitIfNode(ifNode: AstIfNode): StatementsValue;
-	visitLiteralStringNode(literalString: AstLiteralStringNode): StringValue;
-	visitLiteralNumberNode(literalNumber: AstLiteralNumberNode): NumberValue;
-	visitLiteralIdentifierNode(identifier: AstLiteralIdentifierNode): UnresolvedValue;
-}
-
-export class Compiler implements Visitor {
+export class Compiler {
 	readonly #rootNode: AstRootNode;
 	readonly #context: Context;
 
@@ -97,38 +88,40 @@ export class Compiler implements Visitor {
 		throw new Error(`Unexpected filter output: ${applied}`);
 	}
 
-	visitRootNode(root: AstRootNode): StringValue {
-		let output = "";
+	#evaluateRootNode(root: AstRootNode): StringValue {
+		const evaluate = (value: UnresolvedValue) => {
+			let output = "";
 
-		for (const statement of root.statements) {
-			const val = statement.accept(this);
-
-			if (Array.isArray(val.value)) {
-				output += val.value.map((node) => node.value).join("");
-			} else {
-				output += val.value;
+			if (isStringValue(value)) {
+				output += value.value;
+			} else if (isNumberValue(value)) {
+				output += value.value;
+			} else if (isStatementsValue(value)) {
+				for (const statement of value.value) {
+					output += evaluate(statement);
+				}
 			}
-		}
 
-		return { kind: "string", value: output };
+			return output;
+		};
+
+		const values = root.statements.map((node) => this.#evaluate(node));
+
+		return { kind: "string", value: values.map(evaluate).join("") };
 	}
 
-	visitRawTextNode(rawText: AstRawTextNode): StringValue {
+	#evaluateRawTextNode(rawText: AstRawTextNode): StringValue {
 		return { kind: "string", value: rawText.value };
 	}
 
-	visitNodes(nodes: AstStatementNode[]): UnresolvedValue[] {
-		return nodes.map((node) => node.accept(this));
+	#evaluateTemplateNode(template: AstTemplateNode): UnresolvedValue {
+		return this.#evaluate(template.expression);
 	}
 
-	visitTemplateNode(template: AstTemplateNode): UnresolvedValue {
-		return template.expression.accept(this);
-	}
-
-	visitBinaryExpressionNode(binaryExpression: AstBinaryExpressionNode): UnresolvedValue {
-		const left = binaryExpression.left.accept(this);
-		const right = binaryExpression.right.accept(this);
-		const operator = binaryExpression.operator.accept(this);
+	#evaluateBinaryExpressionNode(binaryExpression: AstBinaryExpressionNode): UnresolvedValue {
+		const left = this.#evaluate(binaryExpression.left);
+		const right = this.#evaluate(binaryExpression.right);
+		const operator = this.#evaluate(binaryExpression.operator);
 
 		switch (operator.value) {
 			case "OP_PIPE": {
@@ -205,8 +198,8 @@ export class Compiler implements Visitor {
 		throw new Error(`Unexpected values: ${left}, ${right}`);
 	}
 
-	visitIfNode(ifNode: AstIfNode): StatementsValue {
-		const condition = ifNode.condition.accept(this);
+	#evaluateIfNode(ifNode: AstIfNode): StatementsValue {
+		const condition = this.#evaluate(ifNode.condition);
 
 		if (condition.kind !== "boolean") {
 			throw new Error(`Expected boolean, got ${condition.kind}`);
@@ -215,29 +208,29 @@ export class Compiler implements Visitor {
 		if (condition.value) {
 			return {
 				kind: "statements",
-				value: ifNode.success.map((node) => node.accept(this)),
+				value: ifNode.success.map((node) => this.#evaluate(node)),
 			};
 		} else {
 			return {
 				kind: "statements",
-				value: ifNode.failure?.map((node) => node.accept(this)) || [],
+				value: ifNode.failure.map((node) => this.#evaluate(node)),
 			};
 		}
 	}
 
-	visitBinaryOperatorNode(binaryOperator: AstBinaryOperatorNode): OperatorValue {
+	#evaluateBinaryOperatorNode(binaryOperator: AstBinaryOperatorNode): OperatorValue {
 		return { kind: "operator", value: binaryOperator.operator };
 	}
 
-	visitLiteralStringNode(literalString: AstLiteralStringNode): StringValue {
+	#evaluateLiteralStringNode(literalString: AstLiteralStringNode): StringValue {
 		return { kind: "string", value: literalString.value };
 	}
 
-	visitLiteralNumberNode(literalNumber: AstLiteralNumberNode): NumberValue {
+	#evaluateLiteralNumberNode(literalNumber: AstLiteralNumberNode): NumberValue {
 		return { kind: "number", value: literalNumber.value };
 	}
 
-	visitLiteralIdentifierNode(identifier: AstLiteralIdentifierNode): UnresolvedValue {
+	#evaluateLiteralIdentifierNode(identifier: AstLiteralIdentifierNode): UnresolvedValue {
 		if (filters.has(identifier.name)) {
 			const builtin = filters.get(identifier.name)!;
 
@@ -248,7 +241,30 @@ export class Compiler implements Visitor {
 		return variable;
 	}
 
+	#evaluate(node: AstNode): UnresolvedValue {
+		switch (node.kind) {
+			case "AstRawTextNode":
+				return this.#evaluateRawTextNode(node as AstRawTextNode);
+			case "AstTemplateNode":
+				return this.#evaluateTemplateNode(node as AstTemplateNode);
+			case "AstIfNode":
+				return this.#evaluateIfNode(node as AstIfNode);
+			case "AstBinaryOperatorNode":
+				return this.#evaluateBinaryOperatorNode(node as AstBinaryOperatorNode);
+			case "AstBinaryExpressionNode":
+				return this.#evaluateBinaryExpressionNode(node as AstBinaryExpressionNode);
+			case "AstLiteralStringNode":
+				return this.#evaluateLiteralStringNode(node as AstLiteralStringNode);
+			case "AstLiteralNumberNode":
+				return this.#evaluateLiteralNumberNode(node as AstLiteralNumberNode);
+			case "AstLiteralIdentifierNode":
+				return this.#evaluateLiteralIdentifierNode(node as AstLiteralIdentifierNode);
+			default:
+				throw new Error(`Unexpected node kind: ${node.kind}`);
+		}
+	}
+
 	compile(): string {
-		return this.#rootNode.accept(this).value;
+		return this.#evaluateRootNode(this.#rootNode).value;
 	}
 }
