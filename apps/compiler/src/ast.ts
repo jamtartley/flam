@@ -1,19 +1,16 @@
-import { NumberValue, OperatorValue, RuntimeValue, StringValue, UnresolvedValue, Visitor } from "./compiler";
-
 export type NodeType =
 	| "AstTemplateNode"
 	| "AstBinaryOperatorNode"
 	| "AstBinaryExpressionNode"
+	| "AstIfNode"
 	| "AstRawTextNode"
 	| "AstLiteralStringNode"
 	| "AstLiteralNumberNode"
 	| "AstLiteralIdentifierNode"
 	| "AstRootNode";
 
-abstract class AstNode {
+export abstract class AstNode {
 	public readonly kind: NodeType;
-
-	public abstract accept(visitor: Visitor): UnresolvedValue;
 
 	constructor(kind: NodeType) {
 		this.kind = kind;
@@ -40,10 +37,6 @@ export class AstRootNode extends AstNode {
 
 		this.statements = statements;
 	}
-
-	public accept(visitor: Visitor): StringValue {
-		return visitor.visitRootNode(this);
-	}
 }
 
 export class AstTemplateNode extends AstStatementNode {
@@ -53,10 +46,6 @@ export class AstTemplateNode extends AstStatementNode {
 		super("AstTemplateNode");
 		this.expression = expression;
 	}
-
-	public accept(visitor: Visitor): UnresolvedValue {
-		return visitor.visitTemplateNode(this);
-	}
 }
 
 export class AstBinaryOperatorNode extends AstExpressionNode {
@@ -65,10 +54,6 @@ export class AstBinaryOperatorNode extends AstExpressionNode {
 	constructor(operator: string) {
 		super("AstBinaryOperatorNode");
 		this.operator = operator;
-	}
-
-	public accept(visitor: Visitor): OperatorValue {
-		return visitor.visitBinaryOperatorNode(this);
 	}
 }
 
@@ -84,27 +69,19 @@ export class AstBinaryExpressionNode extends AstExpressionNode {
 		this.operator = operator;
 		this.right = right;
 	}
-
-	public accept(visitor: Visitor): UnresolvedValue {
-		return visitor.visitBinaryExpressionNode(this);
-	}
 }
 
 export class AstIfNode extends AstStatementNode {
 	public readonly condition: AstExpressionNode;
 	public readonly success: AstStatementNode[];
-	public readonly failure?: AstStatementNode[];
+	public readonly failure: AstStatementNode[];
 
-	constructor(condition: AstExpressionNode, success: AstStatementNode[], failure?: AstStatementNode[]) {
-		super("AstBinaryExpressionNode");
+	constructor(condition: AstExpressionNode, success: AstStatementNode[], failure: AstStatementNode[]) {
+		super("AstIfNode");
 
 		this.condition = condition;
 		this.success = success;
 		this.failure = failure;
-	}
-
-	public accept(visitor: Visitor): UnresolvedValue {
-		return visitor.visitIfNode(this);
 	}
 }
 
@@ -115,10 +92,6 @@ export class AstRawTextNode extends AstExpressionNode {
 		super("AstRawTextNode");
 		this.value = value;
 	}
-
-	public accept(visitor: Visitor): StringValue {
-		return visitor.visitRawTextNode(this);
-	}
 }
 
 export class AstLiteralStringNode extends AstExpressionNode {
@@ -127,10 +100,6 @@ export class AstLiteralStringNode extends AstExpressionNode {
 	constructor(value: string) {
 		super("AstLiteralStringNode");
 		this.value = value;
-	}
-
-	public accept(visitor: Visitor): StringValue {
-		return visitor.visitLiteralStringNode(this);
 	}
 }
 
@@ -141,10 +110,6 @@ export class AstLiteralNumberNode extends AstExpressionNode {
 		super("AstLiteralNumberNode");
 		this.value = value;
 	}
-
-	public accept(visitor: Visitor): NumberValue {
-		return visitor.visitLiteralNumberNode(this);
-	}
 }
 
 export class AstLiteralIdentifierNode extends AstExpressionNode {
@@ -153,9 +118,5 @@ export class AstLiteralIdentifierNode extends AstExpressionNode {
 	constructor(name: string) {
 		super("AstLiteralIdentifierNode");
 		this.name = name;
-	}
-
-	public accept(visitor: Visitor): UnresolvedValue {
-		return visitor.visitLiteralIdentifierNode(this);
 	}
 }

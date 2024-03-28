@@ -143,7 +143,8 @@ test("Compiler outputs success clause in if statement", () => {
 					new AstBinaryOperatorNode("OP_EQ"),
 					new AstLiteralStringNode("Hello, world!")
 				),
-				[new AstRawTextNode("In success clause!")]
+				[new AstRawTextNode("In success clause!")],
+				[]
 			),
 		]),
 		context
@@ -164,7 +165,8 @@ test("Compiler outputs multiple success clauses in if statement", () => {
 					new AstBinaryOperatorNode("OP_EQ"),
 					new AstLiteralStringNode("Hello, world!")
 				),
-				[new AstRawTextNode("In success clause!"), new AstRawTextNode("In success clause2!")]
+				[new AstRawTextNode("In success clause!"), new AstRawTextNode("In success clause2!")],
+				[]
 			),
 		]),
 		context
@@ -197,4 +199,42 @@ test("Compiler outputs failure clause in if statement", () => {
 	const output = compiler.compile();
 
 	assert.equal(output, "In failure clause!");
+});
+
+test("Compiler outputs nested clauses in if statement", () => {
+	const context = new Context({
+		variables: new Map([
+			["x", { kind: "string", value: "Hello, world!" }],
+			["y", { kind: "number", value: 2 }],
+		]),
+	});
+	const compiler = new Compiler(
+		new AstRootNode([
+			new AstIfNode(
+				new AstBinaryExpressionNode(
+					new AstLiteralIdentifierNode("x"),
+					new AstBinaryOperatorNode("OP_EQ"),
+					new AstLiteralStringNode("Hello, world!")
+				),
+				[
+					new AstRawTextNode("In success clause!"),
+					new AstIfNode(
+						new AstBinaryExpressionNode(
+							new AstLiteralIdentifierNode("y"),
+							new AstBinaryOperatorNode("OP_EQ"),
+							new AstLiteralNumberNode(10)
+						),
+						[],
+						[new AstRawTextNode("y is not 10!")]
+					),
+				],
+				[]
+			),
+		]),
+		context
+	);
+
+	const output = compiler.compile();
+
+	assert.equal(output, "In success clause!y is not 10!");
 });

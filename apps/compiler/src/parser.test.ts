@@ -214,7 +214,8 @@ test("Parser handles a single if statement", () => {
 				new AstBinaryOperatorNode("OP_GT"),
 				new AstLiteralNumberNode(10)
 			),
-			[new AstRawTextNode("In if statement")]
+			[new AstRawTextNode("In if statement")],
+			[]
 		)
 	);
 });
@@ -244,7 +245,8 @@ test("Parser handles a single if statement with multiple statements", () => {
 				new AstBinaryOperatorNode("OP_EQ"),
 				new AstLiteralNumberNode(10)
 			),
-			[new AstRawTextNode("In if statement"), new AstRawTextNode("In if statement2")]
+			[new AstRawTextNode("In if statement"), new AstRawTextNode("In if statement2")],
+			[]
 		)
 	);
 });
