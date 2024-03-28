@@ -5,6 +5,7 @@ import { Parser } from "./parser";
 import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,
+	AstForNode,
 	AstIfNode,
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
@@ -282,6 +283,70 @@ test("Parser handles an if statement with else clause", () => {
 			[new AstRawTextNode("In if clause")],
 			[new AstRawTextNode("In else clause")]
 		)
+	);
+});
+
+test("Parser handles a for loop", () => {
+	const tokens: Token[] = [
+		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "KEYWORD_FOR", value: "" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "x" }),
+		new Token({ kind: "KEYWORD_IN", value: "" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "y" }),
+		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "RAW", value: "Hello, world!" }),
+		new Token({ kind: "RAW", value: "I am here" }),
+		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "KEYWORD_ROF", value: "" }),
+		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "EOF", value: "" }),
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstForNode(new AstLiteralIdentifierNode("x"), new AstLiteralIdentifierNode("y"), [
+			new AstRawTextNode("Hello, world!"),
+			new AstRawTextNode("I am here"),
+		])
+	);
+});
+
+test("Parser handles a nested for loop", () => {
+	const tokens: Token[] = [
+		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "KEYWORD_FOR", value: "" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "x" }),
+		new Token({ kind: "KEYWORD_IN", value: "" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "z" }),
+		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "RAW", value: "Hello, world!" }),
+		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "KEYWORD_FOR", value: "" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "y" }),
+		new Token({ kind: "KEYWORD_IN", value: "" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "z" }),
+		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "RAW", value: "I am here" }),
+		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "KEYWORD_ROF", value: "" }),
+		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "KEYWORD_ROF", value: "" }),
+		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "EOF", value: "" }),
+	];
+	console.log(tokens);
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstForNode(new AstLiteralIdentifierNode("x"), new AstLiteralIdentifierNode("z"), [
+			new AstRawTextNode("Hello, world!"),
+			new AstForNode(new AstLiteralIdentifierNode("y"), new AstLiteralIdentifierNode("z"), [
+				new AstRawTextNode("I am here"),
+			]),
+		])
 	);
 });
 
