@@ -2,6 +2,7 @@ import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,
 	AstExpressionNode,
+	AstForNode,
 	AstIfNode,
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
@@ -183,6 +184,31 @@ export class Parser {
 		return new AstIfNode(condition, success, failure);
 	}
 
+	#parseFor(): AstForNode {
+		this.#eat("KEYWORD_FOR");
+		const variable = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
+		this.#eat("KEYWORD_IN");
+		const collection = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
+		this.#eat("CONTROL_END");
+
+		const body: AstStatementNode[] = [];
+
+		while (!(this.#current().kind === "CONTROL_START" && this.#peek()?.kind === "KEYWORD_ROF")) {
+			const next = this.#parseNode();
+			if (!next) {
+				break;
+			}
+
+			body.push(next);
+		}
+
+		this.#eat("CONTROL_START");
+		this.#eat("KEYWORD_ROF");
+		this.#eat("CONTROL_END");
+
+		return new AstForNode(variable, collection, body);
+	}
+
 	#parseControl(): AstStatementNode {
 		this.#eat("CONTROL_START");
 
@@ -191,6 +217,9 @@ export class Parser {
 		switch (this.#current().kind) {
 			case "KEYWORD_IF":
 				statement = this.#parseIf();
+				break;
+			case "KEYWORD_FOR":
+				statement = this.#parseFor();
 				break;
 			default:
 				throw new UnexpectedTokenError(["KEYWORD_IF"], this.#current().kind);

@@ -13,7 +13,7 @@ import {
 import { applyFilter, filters } from "./filters";
 import { Context } from "./context";
 
-type ValueKind = "number" | "string" | "boolean" | "filter" | "statements" | "operator";
+type ValueKind = "number" | "string" | "boolean" | "array" | "filter" | "statements" | "operator";
 
 export type RuntimeValue<T> = {
 	kind: ValueKind;
@@ -36,6 +36,8 @@ export type BooleanValue = RuntimeValue<boolean> & {
 	kind: "boolean";
 	value: boolean;
 };
+
+export type ArrayValue = RuntimeValue<UnresolvedValue[]>;
 
 export type StatementsValue = RuntimeValue<UnresolvedValue[]> & {
 	kind: "statements";
