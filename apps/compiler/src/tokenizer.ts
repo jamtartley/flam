@@ -51,9 +51,9 @@ export class Token {
 	public readonly site: TokenSite;
 	public readonly flag: TokenFlag;
 
-	constructor({ kind, value, site }: { kind: TokenKind; value: string; site?: TokenSite }) {
+	constructor({ kind, value, site }: { kind: TokenKind; value?: string; site?: TokenSite }) {
 		this.kind = kind;
-		this.value = value;
+		this.value = value || "";
 		this.site = site || { line: -1, col: -1 };
 		this.flag = this.kind.startsWith("OP_") ? "BINARY_OPERATOR" : "NONE";
 	}
@@ -94,7 +94,7 @@ export class Tokenizer {
 		return this.#fileContents.slice(start, start + length);
 	}
 
-	#append(kind: TokenKind, value: string, site: TokenSite): void {
+	#append(kind: TokenKind, site: TokenSite, value?: string): void {
 		this.tokens.push(new Token({ kind, value, site }));
 	}
 
@@ -128,7 +128,7 @@ export class Tokenizer {
 		const endRawStarts = [TEMPLATE_START, CONTROL_START, COMMENT_START];
 		this.#advanceUntil(() => endRawStarts.some((s) => this.#current(s.length) === s));
 
-		this.#append("RAW", this.#fileContents.slice(startIndex, this.#index), site);
+		this.#append("RAW", site, this.#fileContents.slice(startIndex, this.#index));
 	}
 
 	#tokenizeNumber(): void {
@@ -137,7 +137,7 @@ export class Tokenizer {
 
 		this.#advanceUntil(() => !this.#isCurrentDigit());
 
-		this.#append("LITERAL_NUMBER", this.#fileContents.slice(startIndex, this.#index), site);
+		this.#append("LITERAL_NUMBER", site, this.#fileContents.slice(startIndex, this.#index));
 	}
 
 	#tokenizeIdentifier(): void {
@@ -150,9 +150,9 @@ export class Tokenizer {
 		const value = this.#fileContents.slice(startIndex, this.#index);
 
 		if (keywords.has(value)) {
-			this.#append(keywords.get(value)!, value, site);
+			this.#append(keywords.get(value)!, site, value);
 		} else {
-			this.#append("LITERAL_IDENTIFIER", value, site);
+			this.#append("LITERAL_IDENTIFIER", site, value);
 		}
 	}
 
@@ -163,7 +163,7 @@ export class Tokenizer {
 		const startIndex = this.#index;
 		this.#advanceUntil(() => this.#current() === '"');
 
-		this.#append("LITERAL_STRING", this.#fileContents.slice(startIndex, this.#index), site);
+		this.#append("LITERAL_STRING", site, this.#fileContents.slice(startIndex, this.#index));
 		this.#advance();
 	}
 
@@ -176,22 +176,22 @@ export class Tokenizer {
 	}
 
 	#tokenizeControl(): void {
-		this.#append("CONTROL_START", CONTROL_START, { ...this.#site });
+		this.#append("CONTROL_START", { ...this.#site });
 		this.#advance(2);
 
 		this.#tokenizeInsideTags(CONTROL_END);
 
-		this.#append("CONTROL_END", CONTROL_END, { ...this.#site });
+		this.#append("CONTROL_END", { ...this.#site });
 		this.#advance(2);
 	}
 
 	#tokenizeTemplate(): void {
-		this.#append("TEMPLATE_START", TEMPLATE_START, { ...this.#site });
+		this.#append("TEMPLATE_START", { ...this.#site });
 		this.#advance(2);
 
 		this.#tokenizeInsideTags(TEMPLATE_END);
 
-		this.#append("TEMPLATE_END", TEMPLATE_END, { ...this.#site });
+		this.#append("TEMPLATE_END", { ...this.#site });
 		this.#advance(2);
 	}
 
@@ -206,66 +206,66 @@ export class Tokenizer {
 					this.#advance();
 					continue;
 				case "+":
-					this.#append("OP_PLUS", "+", site);
+					this.#append("OP_PLUS", site);
 					this.#advance();
 					continue;
 				case "-":
-					this.#append("OP_MINUS", "-", site);
+					this.#append("OP_MINUS", site);
 					this.#advance();
 					continue;
 				case "*":
-					this.#append("OP_MULTIPLY", "*", site);
+					this.#append("OP_MULTIPLY", site);
 					this.#advance();
 					continue;
 				case "/":
-					this.#append("OP_DIVIDE", "/", site);
+					this.#append("OP_DIVIDE", site);
 					this.#advance();
 					continue;
 				case "(":
-					this.#append("L_PAREN", "(", site);
+					this.#append("L_PAREN", site);
 					this.#advance();
 					continue;
 				case ")":
-					this.#append("R_PAREN", ")", site);
+					this.#append("R_PAREN", site);
 					this.#advance();
 					continue;
 				case ".":
-					this.#append("PERIOD", ".", site);
+					this.#append("PERIOD", site);
 					this.#advance();
 					continue;
 				case ">":
 					if (this.#next() === "=") {
-						this.#append("OP_GTE", ">=", site);
+						this.#append("OP_GTE", site);
 						this.#advance(2);
 						continue;
 					} else {
-						this.#append("OP_GT", ">", site);
+						this.#append("OP_GT", site);
 						this.#advance();
 						continue;
 					}
 				case "<":
 					if (this.#next() === "=") {
-						this.#append("OP_LTE", "<=", site);
+						this.#append("OP_LTE", site);
 						this.#advance(2);
 						continue;
 					} else {
-						this.#append("OP_LT", "<", site);
+						this.#append("OP_LT", site);
 						this.#advance();
 						continue;
 					}
 				case "=":
 					if (this.#next() === "=") {
-						this.#append("OP_EQ", "==", site);
+						this.#append("OP_EQ", site);
 						this.#advance(2);
 						continue;
 					} else if (this.#next() === "!") {
-						this.#append("OP_NE", "=!", site);
+						this.#append("OP_NE", site);
 						this.#advance(2);
 						continue;
 					}
 				case "|":
 					if (this.#next() === ">") {
-						this.#append("OP_PIPE", "|>", site);
+						this.#append("OP_PIPE", site);
 						this.#advance(2);
 						continue;
 					}
@@ -296,7 +296,7 @@ export class Tokenizer {
 			}
 		}
 
-		this.#append("EOF", "", { ...this.#site });
+		this.#append("EOF", { ...this.#site });
 
 		return this;
 	}

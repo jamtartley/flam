@@ -1,0 +1,5 @@
+{! if name == "Gordon" !}
+Hello, Gordon!
+{! else !}
+Who are you?
+{! fi !}
