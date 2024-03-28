@@ -4,9 +4,9 @@ import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 
 const tokenizer = new Tokenizer(`
-{% for number in numbers %}
+{! for number in numbers !}
 number: {=number=}
-{% rof %}
+{! rof !}
 `).tokenize();
 const parser = new Parser(tokenizer.tokens).parse();
 const context = new Context();

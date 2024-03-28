@@ -193,16 +193,16 @@ test("Parser accepts a pipe as a binary operator", () => {
 
 test("Parser handles a single if statement", () => {
 	const tokens: Token[] = [
-		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "CONTROL_START", value: "{!" }),
 		new Token({ kind: "KEYWORD_IF", value: "" }),
 		new Token({ kind: "LITERAL_IDENTIFIER", value: "x" }),
 		new Token({ kind: "OP_GT", value: ">" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "10" }),
-		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "CONTROL_END", value: "!}" }),
 		new Token({ kind: "RAW", value: "In if statement" }),
-		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "CONTROL_START", value: "{!" }),
 		new Token({ kind: "KEYWORD_FI", value: "" }),
-		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "CONTROL_END", value: "!}" }),
 		new Token({ kind: "EOF", value: "" }),
 	];
 	const parser = new Parser(tokens).parse();
@@ -223,17 +223,17 @@ test("Parser handles a single if statement", () => {
 
 test("Parser handles a single if statement with multiple statements", () => {
 	const tokens: Token[] = [
-		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "CONTROL_START", value: "{!" }),
 		new Token({ kind: "KEYWORD_IF", value: "" }),
 		new Token({ kind: "LITERAL_IDENTIFIER", value: "x" }),
 		new Token({ kind: "OP_EQ", value: "==" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "10" }),
-		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "CONTROL_END", value: "!}" }),
 		new Token({ kind: "RAW", value: "In if statement" }),
 		new Token({ kind: "RAW", value: "In if statement2" }),
-		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "CONTROL_START", value: "{!" }),
 		new Token({ kind: "KEYWORD_FI", value: "" }),
-		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "CONTROL_END", value: "!}" }),
 		new Token({ kind: "EOF", value: "" }),
 	];
 	const parser = new Parser(tokens).parse();
@@ -254,20 +254,20 @@ test("Parser handles a single if statement with multiple statements", () => {
 
 test("Parser handles an if statement with else clause", () => {
 	const tokens: Token[] = [
-		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "CONTROL_START", value: "{!" }),
 		new Token({ kind: "KEYWORD_IF", value: "" }),
 		new Token({ kind: "LITERAL_IDENTIFIER", value: "x" }),
 		new Token({ kind: "OP_GT", value: ">" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "10" }),
-		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "CONTROL_END", value: "!}" }),
 		new Token({ kind: "RAW", value: "In if clause" }),
-		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "CONTROL_START", value: "{!" }),
 		new Token({ kind: "KEYWORD_ELSE", value: "" }),
-		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "CONTROL_END", value: "!}" }),
 		new Token({ kind: "RAW", value: "In else clause" }),
-		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "CONTROL_START", value: "{!" }),
 		new Token({ kind: "KEYWORD_FI", value: "" }),
-		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "CONTROL_END", value: "!}" }),
 		new Token({ kind: "EOF", value: "" }),
 	];
 	const parser = new Parser(tokens).parse();
@@ -288,17 +288,17 @@ test("Parser handles an if statement with else clause", () => {
 
 test("Parser handles a for loop", () => {
 	const tokens: Token[] = [
-		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "CONTROL_START", value: "{!" }),
 		new Token({ kind: "KEYWORD_FOR", value: "" }),
 		new Token({ kind: "LITERAL_IDENTIFIER", value: "x" }),
 		new Token({ kind: "KEYWORD_IN", value: "" }),
 		new Token({ kind: "LITERAL_IDENTIFIER", value: "y" }),
-		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "CONTROL_END", value: "!}" }),
 		new Token({ kind: "RAW", value: "Hello, world!" }),
 		new Token({ kind: "RAW", value: "I am here" }),
-		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "CONTROL_START", value: "{!" }),
 		new Token({ kind: "KEYWORD_ROF", value: "" }),
-		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "CONTROL_END", value: "!}" }),
 		new Token({ kind: "EOF", value: "" }),
 	];
 	const parser = new Parser(tokens).parse();
@@ -314,26 +314,26 @@ test("Parser handles a for loop", () => {
 
 test("Parser handles a nested for loop", () => {
 	const tokens: Token[] = [
-		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "CONTROL_START", value: "{!" }),
 		new Token({ kind: "KEYWORD_FOR", value: "" }),
 		new Token({ kind: "LITERAL_IDENTIFIER", value: "x" }),
 		new Token({ kind: "KEYWORD_IN", value: "" }),
 		new Token({ kind: "LITERAL_IDENTIFIER", value: "z" }),
-		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "CONTROL_END", value: "!}" }),
 		new Token({ kind: "RAW", value: "Hello, world!" }),
-		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "CONTROL_START", value: "{!" }),
 		new Token({ kind: "KEYWORD_FOR", value: "" }),
 		new Token({ kind: "LITERAL_IDENTIFIER", value: "y" }),
 		new Token({ kind: "KEYWORD_IN", value: "" }),
 		new Token({ kind: "LITERAL_IDENTIFIER", value: "z" }),
-		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "CONTROL_END", value: "!}" }),
 		new Token({ kind: "RAW", value: "I am here" }),
-		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "CONTROL_START", value: "{!" }),
 		new Token({ kind: "KEYWORD_ROF", value: "" }),
-		new Token({ kind: "CONTROL_END", value: "%}" }),
-		new Token({ kind: "CONTROL_START", value: "{%" }),
+		new Token({ kind: "CONTROL_END", value: "!}" }),
+		new Token({ kind: "CONTROL_START", value: "{!" }),
 		new Token({ kind: "KEYWORD_ROF", value: "" }),
-		new Token({ kind: "CONTROL_END", value: "%}" }),
+		new Token({ kind: "CONTROL_END", value: "!}" }),
 		new Token({ kind: "EOF", value: "" }),
 	];
 	const parser = new Parser(tokens).parse();
