@@ -1,4 +1,4 @@
-import { NumberValue, OperatorValue, RuntimeValue, StringValue, Visitor } from "./compiler";
+import { NumberValue, OperatorValue, RuntimeValue, StringValue, UnresolvedValue, Visitor } from "./compiler";
 
 export type NodeType =
 	| "AstTemplateNode"
@@ -13,7 +13,7 @@ export type NodeType =
 abstract class AstNode {
 	public readonly kind: NodeType;
 
-	public abstract accept(visitor: Visitor): RuntimeValue<unknown>;
+	public abstract accept(visitor: Visitor): UnresolvedValue;
 
 	constructor(kind: NodeType) {
 		this.kind = kind;
@@ -54,7 +54,7 @@ export class AstTemplateNode extends AstStatementNode {
 		this.expression = expression;
 	}
 
-	public accept(visitor: Visitor): RuntimeValue<unknown> {
+	public accept(visitor: Visitor): UnresolvedValue {
 		return visitor.visitTemplateNode(this);
 	}
 }
@@ -85,12 +85,12 @@ export class AstBinaryExpressionNode extends AstExpressionNode {
 		this.right = right;
 	}
 
-	public accept(visitor: Visitor): RuntimeValue<unknown> {
+	public accept(visitor: Visitor): UnresolvedValue {
 		return visitor.visitBinaryExpressionNode(this);
 	}
 }
 
-export class AstIfNode extends AstExpressionNode {
+export class AstIfNode extends AstStatementNode {
 	public readonly condition: AstExpressionNode;
 	public readonly success: AstStatementNode[];
 	public readonly failure?: AstStatementNode[];
@@ -103,7 +103,7 @@ export class AstIfNode extends AstExpressionNode {
 		this.failure = failure;
 	}
 
-	public accept(visitor: Visitor): RuntimeValue<unknown> {
+	public accept(visitor: Visitor): UnresolvedValue {
 		return visitor.visitIfNode(this);
 	}
 }
@@ -117,7 +117,7 @@ export class AstRawTextNode extends AstExpressionNode {
 	}
 
 	public accept(visitor: Visitor): StringValue {
-		return visitor.visitLiteralStringNode(this);
+		return visitor.visitRawTextNode(this);
 	}
 }
 
@@ -155,7 +155,7 @@ export class AstLiteralIdentifierNode extends AstExpressionNode {
 		this.name = name;
 	}
 
-	public accept(visitor: Visitor): RuntimeValue<unknown> {
+	public accept(visitor: Visitor): UnresolvedValue {
 		return visitor.visitLiteralIdentifierNode(this);
 	}
 }
