@@ -4,6 +4,7 @@ export type NodeType =
 	| "AstTemplateNode"
 	| "AstBinaryOperatorNode"
 	| "AstBinaryExpressionNode"
+	| "AstRawTextNode"
 	| "AstLiteralStringNode"
 	| "AstLiteralNumberNode"
 	| "AstLiteralIdentifierNode"
@@ -86,6 +87,19 @@ export class AstBinaryExpressionNode extends AstExpressionNode {
 
 	public accept(visitor: Visitor): RuntimeValue<unknown> {
 		return visitor.visitBinaryExpressionNode(this);
+	}
+}
+
+export class AstRawTextNode extends AstExpressionNode {
+	public readonly value: string;
+
+	constructor(value: string) {
+		super("AstRawTextNode");
+		this.value = value;
+	}
+
+	public accept(visitor: Visitor): StringValue {
+		return visitor.visitLiteralStringNode(this);
 	}
 }
 

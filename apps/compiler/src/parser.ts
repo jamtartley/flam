@@ -5,6 +5,7 @@ import {
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstLiteralStringNode,
+	AstRawTextNode,
 	AstRootNode,
 	AstTemplateNode,
 } from "./ast";
@@ -128,7 +129,20 @@ export class Parser {
 	}
 
 	public parse(): Parser {
-		this.rootNode.statements.push(this.#parseTemplate());
+		while (this.#tokens.length > 0) {
+			switch (this.#current().kind) {
+				case "RAW":
+					const value = new AstRawTextNode(this.#eat("RAW").value);
+					this.rootNode.statements.push(value);
+					continue;
+				case "TEMPLATE_START":
+					this.rootNode.statements.push(this.#parseTemplate());
+					continue;
+				default:
+					this.#eat("EOF");
+					break;
+			}
+		}
 
 		return this;
 	}
