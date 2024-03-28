@@ -11,7 +11,6 @@ export type TokenKind =
 	| "R_PAREN"
 	| "PERIOD"
 	| "OP_PIPE"
-	| "OP_ASSIGN"
 	| "OP_EQ"
 	| "OP_NE"
 	| "OP_PLUS"
@@ -255,10 +254,6 @@ export class Tokenizer {
 					} else if (this.#next() === "!") {
 						this.#append("OP_NE", "=!", site, "BINARY_OPERATOR");
 						this.#advance(2);
-						continue;
-					} else {
-						this.#append("OP_ASSIGN", "=", site, "BINARY_OPERATOR");
-						this.#advance();
 						continue;
 					}
 				case "|":

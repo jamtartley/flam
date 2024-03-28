@@ -90,6 +90,24 @@ export class AstBinaryExpressionNode extends AstExpressionNode {
 	}
 }
 
+export class AstIfNode extends AstExpressionNode {
+	public readonly condition: AstExpressionNode;
+	public readonly success: AstStatementNode[];
+	public readonly failure?: AstStatementNode[];
+
+	constructor(condition: AstExpressionNode, success: AstStatementNode[], failure?: AstStatementNode[]) {
+		super("AstBinaryExpressionNode");
+
+		this.condition = condition;
+		this.success = success;
+		this.failure = failure;
+	}
+
+	public accept(visitor: Visitor): RuntimeValue<unknown> {
+		return visitor.visitIfNode(this);
+	}
+}
+
 export class AstRawTextNode extends AstExpressionNode {
 	public readonly value: string;
 

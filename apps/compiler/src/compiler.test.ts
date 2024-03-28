@@ -10,9 +10,11 @@ import {
 	AstRootNode,
 	AstTemplateNode,
 } from "./ast";
+import { Context } from "./context";
 
 test("Compiler outputs simple literal number", () => {
-	const compiler = new Compiler(new AstRootNode([new AstTemplateNode(new AstLiteralNumberNode(42))]));
+	const context = new Context();
+	const compiler = new Compiler(new AstRootNode([new AstTemplateNode(new AstLiteralNumberNode(42))]), context);
 
 	const output = compiler.compile();
 
@@ -20,6 +22,7 @@ test("Compiler outputs simple literal number", () => {
 });
 
 test("Compiler outputs value of 42 + 21", () => {
+	const context = new Context();
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstTemplateNode(
@@ -29,7 +32,8 @@ test("Compiler outputs value of 42 + 21", () => {
 					new AstLiteralNumberNode(21)
 				)
 			),
-		])
+		]),
+		context
 	);
 
 	const output = compiler.compile();
@@ -38,6 +42,7 @@ test("Compiler outputs value of 42 + 21", () => {
 });
 
 test("Compiler outputs value of 42 * (21 + 7)", () => {
+	const context = new Context();
 	const rootNode = new AstRootNode([
 		new AstTemplateNode(
 			new AstBinaryExpressionNode(
@@ -51,7 +56,7 @@ test("Compiler outputs value of 42 * (21 + 7)", () => {
 			)
 		),
 	]);
-	const compiler = new Compiler(rootNode);
+	const compiler = new Compiler(rootNode, context);
 
 	const output = compiler.compile();
 
@@ -59,6 +64,7 @@ test("Compiler outputs value of 42 * (21 + 7)", () => {
 });
 
 test("Compiler outputs value of 42 + (10 / (4 - 1))", () => {
+	const context = new Context();
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstTemplateNode(
@@ -76,7 +82,8 @@ test("Compiler outputs value of 42 + (10 / (4 - 1))", () => {
 					)
 				)
 			),
-		])
+		]),
+		context
 	);
 
 	const output = compiler.compile();
@@ -85,6 +92,7 @@ test("Compiler outputs value of 42 + (10 / (4 - 1))", () => {
 });
 
 test("Compiler outputs value of number filter application", () => {
+	const context = new Context();
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstTemplateNode(
@@ -94,7 +102,8 @@ test("Compiler outputs value of number filter application", () => {
 					new AstLiteralIdentifierNode("double")
 				)
 			),
-		])
+		]),
+		context
 	);
 
 	const output = compiler.compile();
@@ -103,6 +112,7 @@ test("Compiler outputs value of number filter application", () => {
 });
 
 test("Compiler outputs value of string filter application", () => {
+	const context = new Context();
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstTemplateNode(
@@ -112,7 +122,8 @@ test("Compiler outputs value of string filter application", () => {
 					new AstLiteralIdentifierNode("uppercase")
 				)
 			),
-		])
+		]),
+		context
 	);
 
 	const output = compiler.compile();

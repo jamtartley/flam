@@ -5,8 +5,10 @@ import { Parser } from "./parser";
 import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,
+	AstIfNode,
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
+	AstRawTextNode,
 	AstTemplateNode,
 } from "./ast";
 
@@ -165,19 +167,6 @@ test("Parser handles precedence in an AstBinaryExpressionNode with parentheses",
 	);
 });
 
-test("Parser throws an UnexpectedTokenError if starting with a TEMPLATE_END token", () => {
-	const tokens: Token[] = [
-		{ kind: "TEMPLATE_END", value: "=}", site: { line: 1, col: 1 } },
-		{ kind: "EOF", value: "", site: { line: 1, col: 3 } },
-	];
-	const parser = new Parser(tokens);
-
-	assert.throws(() => parser.parse(), {
-		name: "UnexpectedTokenError",
-		message: "Unexpected token - expected: EOF but got TEMPLATE_END",
-	});
-});
-
 test("Parser accepts a pipe as a binary operator", () => {
 	const tokens: Token[] = [
 		{ kind: "TEMPLATE_START", value: "{=", site: { line: 1, col: 1 } },
@@ -199,4 +188,110 @@ test("Parser accepts a pipe as a binary operator", () => {
 			)
 		)
 	);
+});
+
+test("Parser handles a single if statement", () => {
+	const tokens: Token[] = [
+		{ kind: "CONTROL_START", value: "{%", site: { line: 1, col: 1 } },
+		{ kind: "KEYWORD_IF", value: "", site: { line: 1, col: 3 } },
+		{ kind: "LITERAL_IDENTIFIER", value: "x", site: { line: 1, col: 3 } },
+		{ kind: "OP_GT", value: ">", site: { line: 1, col: 3 }, flag: "BINARY_OPERATOR" },
+		{ kind: "LITERAL_NUMBER", value: "10", site: { line: 1, col: 3 } },
+		{ kind: "CONTROL_END", value: "%}", site: { line: 1, col: 1 } },
+		{ kind: "RAW", value: "In if statement", site: { line: 1, col: 1 } },
+		{ kind: "CONTROL_START", value: "{%", site: { line: 1, col: 1 } },
+		{ kind: "KEYWORD_FI", value: "", site: { line: 1, col: 3 } },
+		{ kind: "CONTROL_END", value: "%}", site: { line: 1, col: 1 } },
+		{ kind: "EOF", value: "", site: { line: 1, col: 3 } },
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstIfNode(
+			new AstBinaryExpressionNode(
+				new AstLiteralIdentifierNode("x"),
+				new AstBinaryOperatorNode("OP_GT"),
+				new AstLiteralNumberNode(10)
+			),
+			[new AstRawTextNode("In if statement")]
+		)
+	);
+});
+
+test("Parser handles a single if statement with multiple statements", () => {
+	const tokens: Token[] = [
+		{ kind: "CONTROL_START", value: "{%", site: { line: 1, col: 1 } },
+		{ kind: "KEYWORD_IF", value: "", site: { line: 1, col: 3 } },
+		{ kind: "LITERAL_IDENTIFIER", value: "x", site: { line: 1, col: 3 } },
+		{ kind: "OP_EQ", value: "==", site: { line: 1, col: 3 }, flag: "BINARY_OPERATOR" },
+		{ kind: "LITERAL_NUMBER", value: "10", site: { line: 1, col: 3 } },
+		{ kind: "CONTROL_END", value: "%}", site: { line: 1, col: 1 } },
+		{ kind: "RAW", value: "In if statement", site: { line: 1, col: 1 } },
+		{ kind: "RAW", value: "In if statement2", site: { line: 1, col: 1 } },
+		{ kind: "CONTROL_START", value: "{%", site: { line: 1, col: 1 } },
+		{ kind: "KEYWORD_FI", value: "", site: { line: 1, col: 3 } },
+		{ kind: "CONTROL_END", value: "%}", site: { line: 1, col: 1 } },
+		{ kind: "EOF", value: "", site: { line: 1, col: 3 } },
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstIfNode(
+			new AstBinaryExpressionNode(
+				new AstLiteralIdentifierNode("x"),
+				new AstBinaryOperatorNode("OP_EQ"),
+				new AstLiteralNumberNode(10)
+			),
+			[new AstRawTextNode("In if statement"), new AstRawTextNode("In if statement2")]
+		)
+	);
+});
+
+test("Parser handles an if statement with else clause", () => {
+	const tokens: Token[] = [
+		{ kind: "CONTROL_START", value: "{%", site: { line: 1, col: 1 } },
+		{ kind: "KEYWORD_IF", value: "", site: { line: 1, col: 3 } },
+		{ kind: "LITERAL_IDENTIFIER", value: "x", site: { line: 1, col: 3 } },
+		{ kind: "OP_GT", value: ">", site: { line: 1, col: 3 }, flag: "BINARY_OPERATOR" },
+		{ kind: "LITERAL_NUMBER", value: "10", site: { line: 1, col: 3 } },
+		{ kind: "CONTROL_END", value: "%}", site: { line: 1, col: 1 } },
+		{ kind: "RAW", value: "In if clause", site: { line: 1, col: 1 } },
+		{ kind: "CONTROL_START", value: "{%", site: { line: 1, col: 1 } },
+		{ kind: "KEYWORD_ELSE", value: "", site: { line: 1, col: 3 } },
+		{ kind: "CONTROL_END", value: "%}", site: { line: 1, col: 1 } },
+		{ kind: "RAW", value: "In else clause", site: { line: 1, col: 1 } },
+		{ kind: "CONTROL_START", value: "{%", site: { line: 1, col: 1 } },
+		{ kind: "KEYWORD_FI", value: "", site: { line: 1, col: 3 } },
+		{ kind: "CONTROL_END", value: "%}", site: { line: 1, col: 1 } },
+		{ kind: "EOF", value: "", site: { line: 1, col: 3 } },
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstIfNode(
+			new AstBinaryExpressionNode(
+				new AstLiteralIdentifierNode("x"),
+				new AstBinaryOperatorNode("OP_GT"),
+				new AstLiteralNumberNode(10)
+			),
+			[new AstRawTextNode("In if clause")],
+			[new AstRawTextNode("In else clause")]
+		)
+	);
+});
+
+test("Parser throws an UnexpectedTokenError if starting with a TEMPLATE_END token", () => {
+	const tokens: Token[] = [
+		{ kind: "TEMPLATE_END", value: "=}", site: { line: 1, col: 1 } },
+		{ kind: "EOF", value: "", site: { line: 1, col: 3 } },
+	];
+	const parser = new Parser(tokens);
+
+	assert.throws(() => parser.parse(), {
+		name: "UnexpectedTokenError",
+		message: "Unexpected token - expected: EOF but got TEMPLATE_END",
+	});
 });
