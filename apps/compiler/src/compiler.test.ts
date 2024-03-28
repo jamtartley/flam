@@ -4,6 +4,7 @@ import { Compiler } from "./compiler";
 import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,
+	AstForNode,
 	AstIfNode,
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
@@ -237,4 +238,80 @@ test("Compiler outputs nested clauses in if statement", () => {
 	const output = compiler.compile();
 
 	assert.equal(output, "In success clause!y is not 10!");
+});
+
+test("Compiler outputs for loop", () => {
+	const context = new Context({
+		variables: new Map([
+			[
+				"y",
+				{
+					kind: "array",
+					value: [
+						{ kind: "number", value: 1 },
+						{ kind: "number", value: 2 },
+						{ kind: "number", value: 3 },
+					],
+				},
+			],
+		]),
+	});
+	const compiler = new Compiler(
+		new AstRootNode([
+			new AstForNode(new AstLiteralIdentifierNode("x"), new AstLiteralIdentifierNode("y"), [
+				new AstTemplateNode(new AstLiteralIdentifierNode("x")),
+			]),
+		]),
+		context
+	);
+
+	const output = compiler.compile();
+
+	assert.equal(output, "123");
+});
+
+test("Compiler outputs nested for loop", () => {
+	const context = new Context({
+		variables: new Map([
+			[
+				"z",
+				{
+					kind: "array",
+					value: [
+						{ kind: "number", value: 1 },
+						{ kind: "number", value: 2 },
+						{ kind: "number", value: 3 },
+					],
+				},
+			],
+		]),
+	});
+	const compiler = new Compiler(
+		new AstRootNode([
+			new AstForNode(new AstLiteralIdentifierNode("x"), new AstLiteralIdentifierNode("z"), [
+				new AstForNode(new AstLiteralIdentifierNode("y"), new AstLiteralIdentifierNode("z"), [
+					new AstTemplateNode(new AstLiteralIdentifierNode("x")),
+					new AstTemplateNode(new AstLiteralIdentifierNode("y")),
+					new AstRawTextNode("\n"),
+				]),
+			]),
+		]),
+		context
+	);
+
+	const output = compiler.compile();
+
+	assert.equal(
+		output,
+		`11
+12
+13
+21
+22
+23
+31
+32
+33
+`
+	);
 });

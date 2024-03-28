@@ -1,26 +1,23 @@
-import { Compiler } from "./compiler";
+import { ArrayValue, Compiler, NumberValue } from "./compiler";
 import { Context } from "./context";
 import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 
 const tokenizer = new Tokenizer(`
-{# Turn into flam #}
-{% if x == "Hello, world!" %}
-This is what flamming looks like: {= x |> flammify =}!
-{% if y == 2 %}
-y is 2!
-{% fi %}
-{% else %}
-This is not what flamming looks like: {= x =}
-{% fi %}
+{% for number in numbers %}
+number: {=number=}
+{% rof %}
 `).tokenize();
 const parser = new Parser(tokenizer.tokens).parse();
-const context = new Context({
-	variables: new Map([
-		["x", { kind: "string", value: "Hello, world!" }],
-		["y", { kind: "number", value: 2 }],
-	]),
-});
+const context = new Context();
+context.add("numbers", {
+	kind: "array",
+	value: [
+		{ kind: "number", value: 1 } as NumberValue,
+		{ kind: "number", value: 2 } as NumberValue,
+		{ kind: "number", value: 3 } as NumberValue,
+	],
+} as ArrayValue);
 const compiler = new Compiler(parser.rootNode, context);
 
 console.log(compiler.compile());

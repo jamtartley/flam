@@ -34,6 +34,10 @@ export class Context {
 		return context.variables.get(name)!;
 	}
 
+	delete(name: string): void {
+		this.variables.delete(name);
+	}
+
 	findContextForVariable(name: string): Context {
 		if (this.variables.has(name)) {
 			return this;

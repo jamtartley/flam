@@ -1,6 +1,7 @@
 import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,
+	AstForNode,
 	AstIfNode,
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
@@ -37,7 +38,7 @@ export type BooleanValue = RuntimeValue<boolean> & {
 	value: boolean;
 };
 
-export type ArrayValue = RuntimeValue<UnresolvedValue[]>;
+export type ArrayValue = RuntimeValue<Array<UnresolvedValue>>;
 
 export type StatementsValue = RuntimeValue<UnresolvedValue[]> & {
 	kind: "statements";
@@ -59,6 +60,10 @@ function isNumberValue(value: UnresolvedValue): value is NumberValue {
 
 function isStringValue(value: UnresolvedValue): value is StringValue {
 	return value.kind === "string";
+}
+
+function isArrayValue(value: UnresolvedValue): value is ArrayValue {
+	return value.kind === "array";
 }
 
 function isFilterValue(value: UnresolvedValue): value is FilterValue {
@@ -100,7 +105,8 @@ export class Compiler {
 				output += value.value;
 			} else if (isStatementsValue(value)) {
 				for (const statement of value.value) {
-					output += evaluate(statement);
+					const x = evaluate(statement);
+					output += x;
 				}
 			}
 
@@ -220,6 +226,31 @@ export class Compiler {
 		}
 	}
 
+	#evaluateForNode(forNode: AstForNode): StatementsValue {
+		const collection = this.#evaluateLiteralIdentifierNode(forNode.collection);
+
+		if (!isArrayValue(collection)) {
+			throw new Error(`Expected array, got ${collection.kind}`);
+		}
+
+		const items = [];
+
+		for (const item of collection.value) {
+			this.#context.add(forNode.variable.name, item);
+
+			for (const statement of forNode.body) {
+				items.push(this.#evaluate(statement));
+			}
+
+			this.#context.delete(forNode.variable.name);
+		}
+
+		return {
+			kind: "statements",
+			value: items,
+		};
+	}
+
 	#evaluateBinaryOperatorNode(binaryOperator: AstBinaryOperatorNode): OperatorValue {
 		return { kind: "operator", value: binaryOperator.operator };
 	}
@@ -251,6 +282,8 @@ export class Compiler {
 				return this.#evaluateTemplateNode(node as AstTemplateNode);
 			case "AstIfNode":
 				return this.#evaluateIfNode(node as AstIfNode);
+			case "AstForNode":
+				return this.#evaluateForNode(node as AstForNode);
 			case "AstBinaryOperatorNode":
 				return this.#evaluateBinaryOperatorNode(node as AstBinaryOperatorNode);
 			case "AstBinaryExpressionNode":
