@@ -65,8 +65,8 @@ const _9 = "9".charCodeAt(0);
 const TEMPLATE_START = "{=";
 const TEMPLATE_END = "=}";
 
-const CONTROL_START = "{%";
-const CONTROL_END = "%}";
+const CONTROL_START = "{!";
+const CONTROL_END = "!}";
 
 const COMMENT_START = "{#";
 const COMMENT_END = "#}";

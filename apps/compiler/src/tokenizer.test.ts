@@ -29,7 +29,7 @@ test("Tokenizer generates valid template tokens", () => {
 });
 
 test("Tokenizer generates keyword tokens for known identifiers", () => {
-	const tokenizer = new Tokenizer("{% for name in names %}").tokenize();
+	const tokenizer = new Tokenizer("{! for name in names !}").tokenize();
 
 	expectTokenKinds(tokenizer.tokens, [
 		"CONTROL_START",
@@ -60,9 +60,9 @@ test("Tokenizer generates no tokens for comments and advances", () => {
 
 test("Tokenizer generates no tokens for comments embedded in control block", () => {
 	const tokenizer = new Tokenizer(`
-		{% if name %}
+		{! if name !}
 		{# The following people are mutineers: #}
-		{% fi %}
+		{! fi !}
 `).tokenize();
 
 	expectTokenKinds(tokenizer.tokens, [
