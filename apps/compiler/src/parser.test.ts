@@ -336,7 +336,6 @@ test("Parser handles a nested for loop", () => {
 		new Token({ kind: "CONTROL_END", value: "%}" }),
 		new Token({ kind: "EOF", value: "" }),
 	];
-	console.log(tokens);
 	const parser = new Parser(tokens).parse();
 
 	assert.deepEqual(
