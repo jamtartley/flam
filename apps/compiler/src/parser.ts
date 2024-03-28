@@ -2,11 +2,13 @@ import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,
 	AstExpressionNode,
+	AstIfNode,
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstLiteralStringNode,
 	AstRawTextNode,
 	AstRootNode,
+	AstStatementNode,
 	AstTemplateNode,
 } from "./ast";
 import { Token, TokenKind } from "./tokenizer";
@@ -46,6 +48,14 @@ export class Parser {
 		return this.#tokens[this.#currentTokenIndex]!;
 	}
 
+	#peek(): Token | null {
+		if (this.#currentTokenIndex + 1 >= this.#tokens.length) {
+			return null;
+		}
+
+		return this.#tokens[this.#currentTokenIndex + 1]!;
+	}
+
 	#eat(expected: TokenKind): Token {
 		if (this.#current().kind !== expected) {
 			throw new UnexpectedTokenError(expected, this.#current().kind);
@@ -58,9 +68,16 @@ export class Parser {
 		switch (operator.kind) {
 			case "OP_MULTIPLY":
 			case "OP_DIVIDE":
-				return 2;
+				return 3;
 			case "OP_PLUS":
 			case "OP_MINUS":
+				return 2;
+			case "OP_GT":
+			case "OP_LT":
+			case "OP_GTE":
+			case "OP_LTE":
+			case "OP_EQ":
+			case "OP_NE":
 				return 1;
 			case "OP_PIPE":
 				return 0;
@@ -117,6 +134,68 @@ export class Parser {
 		return left;
 	}
 
+	#parseIf(): AstIfNode {
+		this.#eat("KEYWORD_IF");
+
+		const condition = this.#parseBinaryExpression(this.#parseExpressionFactor(), 0);
+
+		this.#eat("CONTROL_END");
+
+		const success: AstStatementNode[] = [];
+		const failure: AstStatementNode[] = [];
+
+		while (
+			!(
+				this.#current().kind === "CONTROL_START" &&
+				(this.#peek()?.kind === "KEYWORD_ELSE" || this.#peek()?.kind === "KEYWORD_FI")
+			)
+		) {
+			const statement = this.#parseNode();
+			if (!statement) {
+				break;
+			}
+
+			success.push(statement);
+		}
+
+		if (this.#current().kind === "CONTROL_START" && this.#peek()?.kind === "KEYWORD_ELSE") {
+			this.#eat("CONTROL_START");
+			this.#eat("KEYWORD_ELSE");
+			this.#eat("CONTROL_END");
+
+			while (!(this.#current().kind === "CONTROL_START" && this.#peek()?.kind === "KEYWORD_FI")) {
+				const statement = this.#parseNode();
+				if (!statement) {
+					break;
+				}
+
+				failure.push(statement);
+			}
+		}
+
+		this.#eat("CONTROL_START");
+		this.#eat("KEYWORD_FI");
+		this.#eat("CONTROL_END");
+
+		return new AstIfNode(condition, success, failure.length > 0 ? failure : undefined);
+	}
+
+	#parseControl(): AstStatementNode {
+		this.#eat("CONTROL_START");
+
+		let statement: AstStatementNode;
+
+		switch (this.#current().kind) {
+			case "KEYWORD_IF":
+				statement = this.#parseIf();
+				break;
+			default:
+				throw new UnexpectedTokenError(["KEYWORD_IF"], this.#current().kind);
+		}
+
+		return statement;
+	}
+
 	#parseTemplate(): AstTemplateNode {
 		this.#eat("TEMPLATE_START");
 
@@ -128,20 +207,29 @@ export class Parser {
 		return new AstTemplateNode(expression);
 	}
 
+	#parseNode(): AstStatementNode | null {
+		switch (this.#current().kind) {
+			case "RAW":
+				const value = new AstRawTextNode(this.#eat("RAW").value);
+				return value;
+			case "TEMPLATE_START":
+				return this.#parseTemplate();
+			case "CONTROL_START":
+				return this.#parseControl();
+			default:
+				this.#eat("EOF");
+				return null;
+		}
+	}
+
 	public parse(): Parser {
 		while (this.#tokens.length > 0) {
-			switch (this.#current().kind) {
-				case "RAW":
-					const value = new AstRawTextNode(this.#eat("RAW").value);
-					this.rootNode.statements.push(value);
-					continue;
-				case "TEMPLATE_START":
-					this.rootNode.statements.push(this.#parseTemplate());
-					continue;
-				default:
-					this.#eat("EOF");
-					break;
+			const node = this.#parseNode();
+			if (!node) {
+				break;
 			}
+
+			this.rootNode.statements.push(node);
 		}
 
 		return this;

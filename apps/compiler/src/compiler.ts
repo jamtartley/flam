@@ -2,6 +2,7 @@ import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,
 	AstExpressionNode,
+	AstIfNode,
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstLiteralStringNode,
@@ -58,6 +59,7 @@ export interface Visitor {
 	visitExpressionNode(expression: AstExpressionNode): UnresolvedValue;
 	visitBinaryExpressionNode(binaryExpression: AstBinaryExpressionNode): UnresolvedValue;
 	visitBinaryOperatorNode(binaryOperator: AstBinaryOperatorNode): OperatorValue;
+	visitIfNode(ifNode: AstIfNode): UnresolvedValue;
 	visitLiteralStringNode(literalString: AstLiteralStringNode): StringValue;
 	visitLiteralNumberNode(literalNumber: AstLiteralNumberNode): NumberValue;
 	visitLiteralIdentifierNode(identifier: AstLiteralIdentifierNode): UnresolvedValue;
@@ -131,6 +133,10 @@ export class Compiler implements Visitor {
 					throw new Error(`Unexpected operator: ${operator.value}`);
 			}
 		}
+	}
+
+	visitIfNode(ifNode: AstIfNode): UnresolvedValue {
+		throw new Error("Method not implemented.");
 	}
 
 	visitBinaryOperatorNode(binaryOperator: AstBinaryOperatorNode): OperatorValue {
