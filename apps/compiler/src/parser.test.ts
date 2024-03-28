@@ -174,7 +174,7 @@ test("Parser throws an UnexpectedTokenError if starting with a TEMPLATE_END toke
 
 	assert.throws(() => parser.parse(), {
 		name: "UnexpectedTokenError",
-		message: "Unexpected token - expected: TEMPLATE_START but got TEMPLATE_END",
+		message: "Unexpected token - expected: EOF but got TEMPLATE_END",
 	});
 });
 
