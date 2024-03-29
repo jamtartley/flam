@@ -11,6 +11,7 @@ import {
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstLiteralStringNode,
+	AstMemberAccessNode,
 	AstRawTextNode,
 	AstTemplateNode,
 } from "./ast";
@@ -350,6 +351,49 @@ test("Parser handles a nested for loop", () => {
 				new AstRawTextNode("I am here"),
 			]),
 		])
+	);
+});
+
+test("Parser handles a single level member access", () => {
+	const tokens: Token[] = [
+		new Token({ kind: "TEMPLATE_START" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "company" }),
+		new Token({ kind: "PERIOD" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "name" }),
+		new Token({ kind: "TEMPLATE_END" }),
+		new Token({ kind: "EOF" }),
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstTemplateNode(
+			new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [new AstLiteralIdentifierNode("name")])
+		)
+	);
+});
+
+test("Parser handles a nested member access", () => {
+	const tokens: Token[] = [
+		new Token({ kind: "TEMPLATE_START" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "company" }),
+		new Token({ kind: "PERIOD" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "founders" }),
+		new Token({ kind: "PERIOD" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "cto" }),
+		new Token({ kind: "TEMPLATE_END" }),
+		new Token({ kind: "EOF" }),
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstTemplateNode(
+			new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [
+				new AstLiteralIdentifierNode("founders"),
+				new AstLiteralIdentifierNode("cto"),
+			])
+		)
 	);
 });
 

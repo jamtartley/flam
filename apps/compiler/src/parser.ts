@@ -8,6 +8,7 @@ import {
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstLiteralStringNode,
+	AstMemberAccessNode,
 	AstRawTextNode,
 	AstRootNode,
 	AstStatementNode,
@@ -91,8 +92,16 @@ export class Parser {
 	#parseExpressionFactor(): AstExpressionNode {
 		switch (this.#current().kind) {
 			case "LITERAL_IDENTIFIER": {
-				const value = this.#eat("LITERAL_IDENTIFIER").value;
-				return new AstLiteralIdentifierNode(value);
+				const initial = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
+				const memberChain: AstLiteralIdentifierNode[] = [];
+
+				while (this.#current().kind === "PERIOD") {
+					this.#eat("PERIOD");
+
+					memberChain.push(new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value));
+				}
+
+				return memberChain.length > 0 ? new AstMemberAccessNode(initial, memberChain) : initial;
 			}
 			case "LITERAL_STRING": {
 				const str = this.#eat("LITERAL_STRING");
