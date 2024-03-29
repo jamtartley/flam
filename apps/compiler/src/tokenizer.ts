@@ -64,6 +64,15 @@ export class Token {
 	}
 }
 
+class UnexpectedCharacterError extends Error {
+	constructor(character: string, site: TokenSite) {
+		// @TODO: Print the line of input where the error occurred
+		super(`Unexpected character: "${character}" at line ${site.line}, column ${site.col}`);
+
+		this.name = "UnexpectedCharacterError";
+	}
+}
+
 const _0 = "0".charCodeAt(0);
 const _9 = "9".charCodeAt(0);
 
@@ -75,6 +84,9 @@ const CONTROL_END = "!}";
 
 const COMMENT_START = "{#";
 const COMMENT_END = "#}";
+
+const IDENTIFIER_START = /[a-zA-Z]/;
+const IDENTIFIER_END = /[^a-zA-Z0-9_]/;
 
 export class Tokenizer {
 	#fileContents: string;
@@ -147,10 +159,9 @@ export class Tokenizer {
 
 	#tokenizeIdentifier(): void {
 		const startIndex = this.#index;
-		const endRegex = /[^a-zA-Z0-9_]/;
 		const site = { ...this.#site };
 
-		this.#advanceUntil(() => endRegex.test(this.#current()));
+		this.#advanceUntil(() => IDENTIFIER_END.test(this.#current()));
 
 		const value = this.#fileContents.slice(startIndex, this.#index);
 
@@ -215,6 +226,12 @@ export class Tokenizer {
 					this.#advance();
 					continue;
 				case "-":
+					if (this.#next() === ">") {
+						this.#append("PIPE", site);
+						this.#advance(2);
+						continue;
+					}
+
 					this.#append("OP_MINUS", site);
 					this.#advance();
 					continue;
@@ -272,21 +289,18 @@ export class Tokenizer {
 						this.#advance(2);
 						continue;
 					}
-				case "|":
-					if (this.#next() === ">") {
-						this.#append("PIPE", site);
-						this.#advance(2);
-						continue;
-					}
 				case '"':
 					this.#tokenizeString();
 					continue;
 				default:
 					if (this.#isCurrentDigit()) {
 						this.#tokenizeNumber();
-					} else {
+					} else if (IDENTIFIER_START.test(this.#current())) {
 						this.#tokenizeIdentifier();
+					} else {
+						throw new UnexpectedCharacterError(this.#current(), site);
 					}
+
 					continue;
 			}
 		}

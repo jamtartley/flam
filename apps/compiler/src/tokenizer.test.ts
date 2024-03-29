@@ -100,7 +100,7 @@ test("Tokenizer ignores speech marks outside tags", () => {
 });
 
 test("Tokenizer generates pipe token inside tags", () => {
-	const tokenizer = new Tokenizer('{= "Hello" |> uppercase =}').tokenize();
+	const tokenizer = new Tokenizer('{= "Hello" -> uppercase =}').tokenize();
 
 	expectTokenKinds(tokenizer.tokens, [
 		"TEMPLATE_START",
@@ -113,13 +113,13 @@ test("Tokenizer generates pipe token inside tags", () => {
 });
 
 test("Tokenizer ignores pipe token outside tags", () => {
-	const tokenizer = new Tokenizer('"Hello" |> {= "world" =}').tokenize();
+	const tokenizer = new Tokenizer('"Hello" -> {= "world" =}').tokenize();
 
 	expectTokenKinds(tokenizer.tokens, ["RAW", "TEMPLATE_START", "LITERAL_STRING", "TEMPLATE_END", "EOF"]);
 });
 
 test("Tokenizer generates parens inside tags", () => {
-	const tokenizer = new Tokenizer('{= name |> join(",") =}').tokenize();
+	const tokenizer = new Tokenizer('{= name -> join(",") =}').tokenize();
 
 	expectTokenKinds(tokenizer.tokens, [
 		"TEMPLATE_START",
@@ -147,7 +147,7 @@ test("Tokenizer ignores periods outside tags", () => {
 });
 
 test("Tokenizer generates periods inside tags", () => {
-	const tokenizer = new Tokenizer('{= name.first |> join(",") =}').tokenize();
+	const tokenizer = new Tokenizer('{= name.first -> join(",") =}').tokenize();
 
 	expectTokenKinds(tokenizer.tokens, [
 		"TEMPLATE_START",
@@ -271,4 +271,13 @@ test("Tokenizer tracks line/column position when literal string spans multiple l
 	assert.equal(tokenizer.tokens[2]?.value, "Hello\n\n");
 	assert.equal(tokenizer.tokens[2]?.site.line, 2);
 	assert.equal(tokenizer.tokens[2]?.site.col, 10);
+});
+
+test("Tokenizer throws an UnexpectedCharacterError when encountering malformed input", () => {
+	const tokenizer = new Tokenizer(`{= "Hello" _> uppercase =} `);
+
+	assert.throws(() => tokenizer.tokenize(), {
+		name: "UnexpectedCharacterError",
+		message: 'Unexpected character: "_" at line 1, column 12',
+	});
 });

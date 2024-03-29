@@ -1,1 +1,2 @@
+{! make name = "Gordon" !}
 Hello, {= name =}!
