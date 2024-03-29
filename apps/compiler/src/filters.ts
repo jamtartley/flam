@@ -1,6 +1,6 @@
 import * as t from "io-ts";
 import { PathReporter } from "io-ts/PathReporter";
-import { ArrayValue, RuntimeValue, ValueKind } from "./compiler";
+import { ArrayValue, ObjectValue, RuntimeValue, ValueKind } from "./compiler";
 
 export const filters = new Map<string, { func: Function; validators: t.Type<any>[] }>();
 
@@ -20,7 +20,7 @@ export class NumberFilters {
 export class StringFilters {
 	@register([t.string])
 	static lowercase(x: string) {
-		return x.toUpperCase();
+		return x.toLowerCase();
 	}
 
 	@register([t.string])
@@ -28,10 +28,10 @@ export class StringFilters {
 		return x.toUpperCase();
 	}
 
-	/* @register([t.array(t.string), t.string])
-	static join(x: string[], y: string) {
-		return x.join(y);
-	} */
+	@register([t.string])
+	static titlecase(x: string) {
+		return x.replace(/\b\w/g, (c) => c.toUpperCase());
+	}
 
 	@register([t.array(t.string), t.string])
 	static join(x: string[], y: string) {
@@ -53,7 +53,29 @@ export class StringFilters {
 	}
 }
 
-function runtimeToRaw(value: RuntimeValue): any {
+export class ArrayFilters {
+	@register([t.array(t.UnknownRecord), t.string])
+	static pluck(x: object[], key: keyof (typeof x)[number]) {
+		return x.map((obj) => obj[key]);
+	}
+
+	@register([t.array(t.string)])
+	static alphabetize(x: string[]) {
+		return x.sort();
+	}
+
+	@register([t.array(t.any)])
+	static reverse(x: any[]) {
+		return x.reverse();
+	}
+
+	@register([t.array(t.any)])
+	static count(x: any[]) {
+		return x.length;
+	}
+}
+
+function runtimeToRaw(value: any): any {
 	switch (value.kind) {
 		case ValueKind.NUMBER:
 		case ValueKind.STRING:
@@ -61,7 +83,27 @@ function runtimeToRaw(value: RuntimeValue): any {
 			return value.value;
 		case ValueKind.ARRAY:
 			return (value as ArrayValue).value.map(runtimeToRaw);
+		case ValueKind.OBJECT:
+			return Object.fromEntries(
+				Object.entries((value as ObjectValue).value).map(([key, value]) => [key, runtimeToRaw(value)])
+			);
 	}
+}
+
+function rawIntoRuntime(value: any): RuntimeValue {
+	if (typeof value === "number") {
+		return { kind: ValueKind.NUMBER, value: value };
+	} else if (typeof value === "string") {
+		return { kind: ValueKind.STRING, value: value };
+	} else if (typeof value === "boolean") {
+		return { kind: ValueKind.BOOLEAN, value: value };
+	} else if (Array.isArray(value)) {
+		return { kind: ValueKind.ARRAY, value: value.map(rawIntoRuntime) };
+	} else if (typeof value === "object") {
+		return { kind: ValueKind.OBJECT, value: value.map(rawIntoRuntime) };
+	}
+
+	throw new Error(`Unsupported type: ${typeof value}`);
 }
 
 export function applyFilter(name: string, args: RuntimeValue[]) {
@@ -82,7 +124,7 @@ export function applyFilter(name: string, args: RuntimeValue[]) {
 		}
 	}
 
-	return func(...rawArgs);
+	return rawIntoRuntime(func(...rawArgs));
 }
 
 class FilterNotFoundError extends Error {
