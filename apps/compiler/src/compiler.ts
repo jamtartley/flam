@@ -113,7 +113,9 @@ export class Compiler {
 	}
 
 	#evaluateRawTextNode(rawText: AstRawTextNode): StringValue {
-		return { kind: ValueKind.STRING, value: rawText.value };
+		const value = rawText.value === "\n" ? "" : rawText.value;
+
+		return { kind: ValueKind.STRING, value };
 	}
 
 	#evaluateTemplateNode(template: AstTemplateNode): RuntimeValue {
