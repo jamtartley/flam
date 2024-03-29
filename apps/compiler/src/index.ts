@@ -4,8 +4,8 @@ import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 
 const tokenizer = new Tokenizer(`
-{! for employee in company.employees !}
-{= employee.name =} is a {= employee.title =}
+{! for employee in company.employees |> pluck("name") !}
+{= employee =} 
 {! rof !}
 `).tokenize();
 

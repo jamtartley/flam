@@ -346,6 +346,40 @@ test("Parser handles a for loop where the collection is an object member", () =>
 	);
 });
 
+test("Parser handles a for loop where the collection is complex expression", () => {
+	const tokens: Token[] = [
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_FOR" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "name" }),
+		new Token({ kind: "KEYWORD_IN" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "employees" }),
+		new Token({ kind: "PIPE" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "pluck" }),
+		new Token({ kind: "L_PAREN" }),
+		new Token({ kind: "LITERAL_STRING", value: "firstName" }),
+		new Token({ kind: "R_PAREN" }),
+		new Token({ kind: "CONTROL_END" }),
+		new Token({ kind: "RAW", value: "Hello, world!" }),
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_ROF" }),
+		new Token({ kind: "CONTROL_END" }),
+		new Token({ kind: "EOF" }),
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstForNode(
+			new AstLiteralIdentifierNode("name"),
+			new AstFilterNode(new AstLiteralIdentifierNode("pluck"), [
+				new AstLiteralIdentifierNode("employees"),
+				new AstLiteralStringNode("firstName"),
+			]),
+			[new AstRawTextNode("Hello, world!")]
+		)
+	);
+});
+
 test("Parser handles a nested for loop", () => {
 	const tokens: Token[] = [
 		new Token({ kind: "CONTROL_START" }),
