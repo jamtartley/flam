@@ -292,6 +292,37 @@ test("Compiler outputs for loop when collection is nested member", () => {
 	assert.equal(output, "CameronDonna");
 });
 
+test("Compiler outputs for loop when collection is a filter expression", () => {
+	const context = Context.fromObj({
+		company: {
+			employees: [
+				{ name: "Cameron", title: "cto", reports: [{ name: "Yo-yo" }, { name: "Tom" }] },
+				{ name: "Donna", title: "ceo", reports: [{ name: "John" }, { name: "Cameron" }] },
+			],
+		},
+	});
+	const compiler = new Compiler(
+		new AstRootNode([
+			new AstForNode(
+				new AstLiteralIdentifierNode("name"),
+				new AstFilterNode(new AstLiteralIdentifierNode("pluck"), [
+					new AstFilterNode(new AstLiteralIdentifierNode("pluck"), [
+						new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [new AstLiteralStringNode("employees")]),
+						new AstLiteralStringNode("reports"),
+					]),
+					new AstLiteralStringNode("name"),
+				]),
+				[new AstTemplateNode(new AstLiteralIdentifierNode("name"))]
+			),
+		]),
+		context
+	);
+
+	const output = compiler.compile();
+
+	assert.equal(output, "Yo-yoTomJohnCameron");
+});
+
 test("Compiler outputs nested for loop", () => {
 	const context = new Context({
 		variables: new Map([
@@ -323,7 +354,19 @@ test("Compiler outputs nested for loop", () => {
 
 	const output = compiler.compile();
 
-	assert.equal(output, "111213212223313233");
+	assert.equal(
+		output,
+		`11
+12
+13
+21
+22
+23
+31
+32
+33
+`
+	);
 });
 
 test("Compiler outputs member access", () => {

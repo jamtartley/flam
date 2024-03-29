@@ -55,8 +55,8 @@ export class StringFilters {
 
 export class ArrayFilters {
 	@register([t.array(t.UnknownRecord), t.string])
-	static pluck(x: object[], key: keyof (typeof x)[number]) {
-		return x.map((obj) => obj[key]);
+	static pluck<T extends Record<string, any>>(x: T[], key: keyof T): T[keyof T][] {
+		return x.map((obj) => obj[key]).flat();
 	}
 
 	@register([t.array(t.string)])
@@ -100,7 +100,10 @@ function rawIntoRuntime(value: any): RuntimeValue {
 	} else if (Array.isArray(value)) {
 		return { kind: ValueKind.ARRAY, value: value.map(rawIntoRuntime) };
 	} else if (typeof value === "object") {
-		return { kind: ValueKind.OBJECT, value: value.map(rawIntoRuntime) };
+		return {
+			kind: ValueKind.OBJECT,
+			value: Object.fromEntries(Object.entries(value).map(([key, value]) => [key, rawIntoRuntime(value)])),
+		};
 	}
 
 	throw new Error(`Unsupported type: ${typeof value}`);
