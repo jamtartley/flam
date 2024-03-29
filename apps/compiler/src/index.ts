@@ -4,14 +4,9 @@ import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 
 const tokenizer = new Tokenizer(`
-{! make favourite become "Gordon" !}
-{! make isGoodChoice become favourite == "Joe" !}
-
-{! if isGoodChoice !}
-You made a good choice!
-{! else !}
-You made a bad choice!
-{! fi !}
+{! for name in company.employees -> pluck("reports") -> pluck("name") !}
+{= name =}
+{! rof !}
 `).tokenize();
 
 const parser = new Parser(tokenizer.tokens).parse();

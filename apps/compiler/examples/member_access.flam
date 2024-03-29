@@ -1,0 +1,4 @@
+{! for employee in company.employees !}
+[Name] {= employee.name =}
+[Title] {= employee.title =}
+{! rof !}
