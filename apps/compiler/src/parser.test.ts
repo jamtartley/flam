@@ -121,7 +121,10 @@ test("Parser emits an AstFilterNode inside a template", () => {
 	assert.deepEqual(
 		parser.rootNode.statements[0],
 		new AstTemplateNode(
-			new AstFilterNode("join", [new AstLiteralIdentifierNode("names"), new AstLiteralStringNode(",")])
+			new AstFilterNode(new AstLiteralIdentifierNode("join"), [
+				new AstLiteralIdentifierNode("names"),
+				new AstLiteralStringNode(","),
+			])
 		)
 	);
 });

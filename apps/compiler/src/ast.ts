@@ -138,10 +138,10 @@ export class AstLiteralIdentifierNode extends AstExpressionNode {
 }
 
 export class AstFilterNode extends AstExpressionNode {
-	public readonly name: string;
+	public readonly name: AstLiteralIdentifierNode;
 	public readonly args: AstExpressionNode[];
 
-	constructor(name: string, args: AstExpressionNode[]) {
+	constructor(name: AstLiteralIdentifierNode, args: AstExpressionNode[]) {
 		super("AstFilterNode");
 		this.name = name;
 		this.args = args;
