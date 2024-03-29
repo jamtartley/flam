@@ -236,7 +236,7 @@ export class Parser {
 		while (this.#current().kind === "PIPE") {
 			this.#eat("PIPE");
 
-			const filterName = this.#eat("LITERAL_IDENTIFIER").value;
+			const filterName = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
 			const filterNode = new AstFilterNode(filterName, []);
 
 			if (this.#current().kind === "L_PAREN") {

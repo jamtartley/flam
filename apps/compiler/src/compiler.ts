@@ -14,7 +14,6 @@ import {
 } from "./ast";
 import { applyFilter, filters } from "./filters";
 import { Context } from "./context";
-import { isBuiltin } from "module";
 
 export enum ValueKind {
 	NUMBER,
@@ -111,7 +110,7 @@ export class Compiler {
 		const args: RuntimeValue[] = [this.#previousEvaluation, ...filter.args.map((arg) => this.#evaluate(arg))].filter(
 			isRuntimeValue
 		);
-		const applied = applyFilter(filter.name, args);
+		const applied = applyFilter(filter.name.name, args);
 
 		if (typeof applied === "number") {
 			return { kind: ValueKind.NUMBER, value: applied };
@@ -128,8 +127,6 @@ export class Compiler {
 		const operator = this.#evaluate(binaryExpression.operator);
 
 		switch (operator.value) {
-			case "OP_PIPE":
-				return this.#evaluateFilterNode(binaryExpression.right as AstFilterNode);
 			case "OP_PLUS": {
 				if (!isNumberValue(left) || !isNumberValue(right)) {
 					throw new Error(`Expected numbers, got ${left.kind}, ${right.kind}`);
@@ -256,7 +253,7 @@ export class Compiler {
 
 	#evaluateLiteralIdentifierNode(identifier: AstLiteralIdentifierNode): RuntimeValue {
 		if (filters.has(identifier.name)) {
-			return this.#evaluateFilterNode(new AstFilterNode(identifier.name, []));
+			return this.#evaluateFilterNode(new AstFilterNode(identifier, []));
 		}
 
 		const variable = this.#context.get(identifier.name);

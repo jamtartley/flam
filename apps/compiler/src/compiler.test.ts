@@ -98,7 +98,9 @@ test("Compiler outputs value of 42 + (10 / (4 - 1))", () => {
 test("Compiler outputs value of number filter application", () => {
 	const context = new Context();
 	const compiler = new Compiler(
-		new AstRootNode([new AstTemplateNode(new AstFilterNode("double", [new AstLiteralNumberNode(21)]))]),
+		new AstRootNode([
+			new AstTemplateNode(new AstFilterNode(new AstLiteralIdentifierNode("double"), [new AstLiteralNumberNode(21)])),
+		]),
 		context
 	);
 
@@ -110,7 +112,11 @@ test("Compiler outputs value of number filter application", () => {
 test("Compiler outputs value of string filter application", () => {
 	const context = new Context();
 	const compiler = new Compiler(
-		new AstRootNode([new AstTemplateNode(new AstFilterNode("uppercase", [new AstLiteralStringNode("hello, world!")]))]),
+		new AstRootNode([
+			new AstTemplateNode(
+				new AstFilterNode(new AstLiteralIdentifierNode("uppercase"), [new AstLiteralStringNode("hello, world!")])
+			),
+		]),
 		context
 	);
 
