@@ -20,6 +20,7 @@ export enum ValueKind {
 	STRING,
 	BOOLEAN,
 	ARRAY,
+	OBJECT,
 }
 
 export interface RuntimeValue {
@@ -45,6 +46,11 @@ export interface BooleanValue extends RuntimeValue {
 export interface ArrayValue extends RuntimeValue {
 	kind: ValueKind.ARRAY;
 	value: RuntimeValue[];
+}
+
+export interface ObjectValue extends RuntimeValue {
+	kind: ValueKind.OBJECT;
+	value: Record<string, RuntimeValue>;
 }
 
 function isRuntimeValue(value?: RuntimeValue): value is RuntimeValue {

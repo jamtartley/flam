@@ -79,6 +79,102 @@ test("Context.fromObj converts a nested array of items", () => {
 	});
 });
 
+test("Context.fromObj converts a flat object", () => {
+	const input = {
+		company: {
+			name: "Mutiny",
+			established: 1983,
+		},
+	};
+	const context = Context.fromObj(input);
+
+	assert.deepEqual(context.variables.get("company"), {
+		kind: ValueKind.OBJECT,
+		value: {
+			name: { kind: ValueKind.STRING, value: "Mutiny" },
+			established: { kind: ValueKind.NUMBER, value: 1983 },
+		},
+	});
+});
+
+test("Context.fromObj converts an object with nested array", () => {
+	const input = {
+		company: {
+			name: "Mutiny",
+			established: 1983,
+			founders: ["Cameron", "Donna"],
+		},
+	};
+	const context = Context.fromObj(input);
+
+	assert.deepEqual(context.variables.get("company"), {
+		kind: ValueKind.OBJECT,
+		value: {
+			name: { kind: ValueKind.STRING, value: "Mutiny" },
+			established: { kind: ValueKind.NUMBER, value: 1983 },
+			founders: {
+				kind: ValueKind.ARRAY,
+				value: [
+					{ kind: ValueKind.STRING, value: "Cameron" },
+					{ kind: ValueKind.STRING, value: "Donna" },
+				],
+			},
+		},
+	});
+});
+
+test("Context.fromObj converts an object with nested objects", () => {
+	const input = {
+		company: {
+			name: "Mutiny",
+			established: 1983,
+			founders: {
+				ceo: "Donna",
+				cto: "Cameron",
+			},
+			employees: [
+				{ name: "Bosworth", title: "Director of Engineering" },
+				{ name: "Yo-Yo", title: "Software Engineer" },
+			],
+		},
+	};
+	const context = Context.fromObj(input);
+
+	assert.deepEqual(context.variables.get("company"), {
+		kind: ValueKind.OBJECT,
+		value: {
+			name: { kind: ValueKind.STRING, value: "Mutiny" },
+			established: { kind: ValueKind.NUMBER, value: 1983 },
+			founders: {
+				kind: ValueKind.OBJECT,
+				value: {
+					ceo: { kind: ValueKind.STRING, value: "Donna" },
+					cto: { kind: ValueKind.STRING, value: "Cameron" },
+				},
+			},
+			employees: {
+				kind: ValueKind.ARRAY,
+				value: [
+					{
+						kind: ValueKind.OBJECT,
+						value: {
+							name: { kind: ValueKind.STRING, value: "Bosworth" },
+							title: { kind: ValueKind.STRING, value: "Director of Engineering" },
+						},
+					},
+					{
+						kind: ValueKind.OBJECT,
+						value: {
+							name: { kind: ValueKind.STRING, value: "Yo-Yo" },
+							title: { kind: ValueKind.STRING, value: "Software Engineer" },
+						},
+					},
+				],
+			},
+		},
+	});
+});
+
 test("findContextForVariable finds a variable in the current context", () => {
 	const context = new Context({
 		variables: new Map([["name", { kind: ValueKind.STRING, value: "Cameron" }]]),
