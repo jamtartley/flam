@@ -4,8 +4,14 @@ import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 
 const tokenizer = new Tokenizer(`
-{! make x become 10 !}
-{= x =}
+{! make favourite become "Gordon" !}
+{! make isGoodChoice become favourite == "Joe" !}
+
+{! if isGoodChoice !}
+You made a good choice!
+{! else !}
+You made a bad choice!
+{! fi !}
 `).tokenize();
 
 const parser = new Parser(tokenizer.tokens).parse();
