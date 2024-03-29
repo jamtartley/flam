@@ -10,6 +10,7 @@ import {
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstLiteralStringNode,
+	AstMakeNode,
 	AstMemberAccessNode,
 	AstRawTextNode,
 	AstRootNode,
@@ -321,6 +322,44 @@ test("Compiler outputs for loop when collection is a filter expression", () => {
 	const output = compiler.compile();
 
 	assert.equal(output, "Yo-yoTomJohnCameron");
+});
+
+test("Compiler assigns variable when encountering a make node", () => {
+	const context = new Context();
+	const compiler = new Compiler(
+		new AstRootNode([
+			new AstMakeNode(new AstLiteralIdentifierNode("x"), new AstLiteralNumberNode(42)),
+			new AstTemplateNode(new AstLiteralIdentifierNode("x")),
+		]),
+		context
+	);
+
+	const output = compiler.compile();
+
+	assert.equal(output, "42");
+});
+
+test("Compiler assigns variable when encountering a make node with complex expression", () => {
+	const context = new Context();
+	const compiler = new Compiler(
+		new AstRootNode([
+			new AstMakeNode(
+				new AstLiteralIdentifierNode("x"),
+
+				new AstBinaryExpressionNode(
+					new AstLiteralNumberNode(21),
+					new AstBinaryOperatorNode("OP_MULTIPLY"),
+					new AstLiteralNumberNode(2)
+				)
+			),
+			new AstTemplateNode(new AstLiteralIdentifierNode("x")),
+		]),
+		context
+	);
+
+	const output = compiler.compile();
+
+	assert.equal(output, "42");
 });
 
 test("Compiler outputs nested for loop", () => {

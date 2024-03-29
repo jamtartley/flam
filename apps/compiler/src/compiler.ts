@@ -7,6 +7,7 @@ import {
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstLiteralStringNode,
+	AstMakeNode,
 	AstMemberAccessNode,
 	AstNode,
 	AstRawTextNode,
@@ -22,6 +23,7 @@ export enum ValueKind {
 	BOOLEAN,
 	ARRAY,
 	OBJECT,
+	NULL,
 }
 
 export interface RuntimeValue {
@@ -54,6 +56,11 @@ export interface ObjectValue extends RuntimeValue {
 	value: Record<string, RuntimeValue>;
 }
 
+export interface NullValue extends RuntimeValue {
+	kind: ValueKind.NULL;
+	value: null;
+}
+
 function isRuntimeValue(value?: RuntimeValue): value is RuntimeValue {
 	return !!value;
 }
@@ -66,12 +73,20 @@ function isStringValue(value: RuntimeValue): value is StringValue {
 	return value.kind === ValueKind.STRING;
 }
 
+function isBooleanValue(value: RuntimeValue): value is BooleanValue {
+	return value.kind === ValueKind.BOOLEAN;
+}
+
 function isArrayValue(value: RuntimeValue): value is ArrayValue {
 	return value.kind === ValueKind.ARRAY;
 }
 
 function isObjectValue(value: RuntimeValue): value is ObjectValue {
 	return value.kind === ValueKind.OBJECT;
+}
+
+function isNullValue(value: RuntimeValue): value is NullValue {
+	return value.kind === ValueKind.NULL;
 }
 
 export class Compiler {
@@ -91,11 +106,15 @@ export class Compiler {
 				output += value.value;
 			} else if (isNumberValue(value)) {
 				output += value.value;
+			} else if (isBooleanValue(value)) {
+				output += value.value;
 			} else if (isArrayValue(value)) {
 				for (const statement of value.value) {
 					const x = evaluate(statement);
 					output += x;
 				}
+			} else if (isObjectValue(value)) {
+				output += JSON.stringify(value.value);
 			}
 
 			return output;
@@ -258,6 +277,14 @@ export class Compiler {
 		};
 	}
 
+	#evaluateMakeNode(makeNode: AstMakeNode): NullValue {
+		const value = this.#evaluate(makeNode.value);
+
+		this.#context.add(makeNode.name.name, value);
+
+		return { kind: ValueKind.NULL, value: null };
+	}
+
 	#evaluateBinaryOperatorNode(binaryOperator: AstBinaryOperatorNode): StringValue {
 		return { kind: ValueKind.STRING, value: binaryOperator.operator };
 	}
@@ -289,6 +316,8 @@ export class Compiler {
 				return this.#evaluateIfNode(node as AstIfNode);
 			case "AstForNode":
 				return this.#evaluateForNode(node as AstForNode);
+			case "AstMakeNode":
+				return this.#evaluateMakeNode(node as AstMakeNode);
 			case "AstBinaryOperatorNode":
 				return this.#evaluateBinaryOperatorNode(node as AstBinaryOperatorNode);
 			case "AstBinaryExpressionNode":
