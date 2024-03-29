@@ -8,6 +8,7 @@ export type NodeType =
 	| "AstLiteralStringNode"
 	| "AstLiteralNumberNode"
 	| "AstLiteralIdentifierNode"
+	| "AstFilterNode"
 	| "AstRootNode";
 
 export abstract class AstNode {
@@ -133,5 +134,16 @@ export class AstLiteralIdentifierNode extends AstExpressionNode {
 	constructor(name: string) {
 		super("AstLiteralIdentifierNode");
 		this.name = name;
+	}
+}
+
+export class AstFilterNode extends AstExpressionNode {
+	public readonly name: string;
+	public readonly args: AstExpressionNode[];
+
+	constructor(name: string, args: AstExpressionNode[]) {
+		super("AstFilterNode");
+		this.name = name;
+		this.args = args;
 	}
 }

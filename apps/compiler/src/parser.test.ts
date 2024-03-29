@@ -5,10 +5,12 @@ import { Parser } from "./parser";
 import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,
+	AstFilterNode,
 	AstForNode,
 	AstIfNode,
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
+	AstLiteralStringNode,
 	AstRawTextNode,
 	AstTemplateNode,
 } from "./ast";
@@ -102,6 +104,28 @@ test("Parser emits an AstBinaryExpressionNode for a nested addition inside templ
 	);
 });
 
+test("Parser emits an AstFilterNode inside a template", () => {
+	const tokens: Token[] = [
+		new Token({ kind: "TEMPLATE_START" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "names" }),
+		new Token({ kind: "PIPE" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "join" }),
+		new Token({ kind: "L_PAREN" }),
+		new Token({ kind: "LITERAL_STRING", value: "," }),
+		new Token({ kind: "R_PAREN" }),
+		new Token({ kind: "TEMPLATE_END", value: "=}" }),
+		new Token({ kind: "EOF", value: "" }),
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstTemplateNode(
+			new AstFilterNode("join", [new AstLiteralIdentifierNode("names"), new AstLiteralStringNode(",")])
+		)
+	);
+});
+
 test("Parser handles precedence in an AstBinaryExpressionNode", () => {
 	const tokens: Token[] = [
 		new Token({ kind: "TEMPLATE_START", value: "{=" }),
@@ -163,29 +187,6 @@ test("Parser handles precedence in an AstBinaryExpressionNode with parentheses",
 					new AstBinaryOperatorNode("OP_PLUS"),
 					new AstLiteralNumberNode(7)
 				)
-			)
-		)
-	);
-});
-
-test("Parser accepts a pipe as a binary operator", () => {
-	const tokens: Token[] = [
-		new Token({ kind: "TEMPLATE_START", value: "{=" }),
-		new Token({ kind: "LITERAL_NUMBER", value: "21" }),
-		new Token({ kind: "OP_PIPE", value: "|>" }),
-		new Token({ kind: "LITERAL_IDENTIFIER", value: "double" }),
-		new Token({ kind: "TEMPLATE_END", value: "=}" }),
-		new Token({ kind: "EOF", value: "" }),
-	];
-	const parser = new Parser(tokens).parse();
-
-	assert.deepEqual(
-		parser.rootNode.statements[0],
-		new AstTemplateNode(
-			new AstBinaryExpressionNode(
-				new AstLiteralNumberNode(21),
-				new AstBinaryOperatorNode("OP_PIPE"),
-				new AstLiteralIdentifierNode("double")
 			)
 		)
 	);

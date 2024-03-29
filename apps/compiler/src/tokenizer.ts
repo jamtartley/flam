@@ -10,7 +10,8 @@ export type TokenKind =
 	| "L_PAREN"
 	| "R_PAREN"
 	| "PERIOD"
-	| "OP_PIPE"
+	| "COMMA"
+	| "PIPE"
 	| "OP_EQ"
 	| "OP_NE"
 	| "OP_PLUS"
@@ -233,6 +234,10 @@ export class Tokenizer {
 					this.#append("PERIOD", site);
 					this.#advance();
 					continue;
+				case ",":
+					this.#append("COMMA", site);
+					this.#advance();
+					continue;
 				case ">":
 					if (this.#next() === "=") {
 						this.#append("OP_GTE", site);
@@ -265,7 +270,7 @@ export class Tokenizer {
 					}
 				case "|":
 					if (this.#next() === ">") {
-						this.#append("OP_PIPE", site);
+						this.#append("PIPE", site);
 						this.#advance(2);
 						continue;
 					}

@@ -1,6 +1,7 @@
 import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,
+	AstFilterNode,
 	AstForNode,
 	AstIfNode,
 	AstLiteralIdentifierNode,
@@ -13,13 +14,13 @@ import {
 } from "./ast";
 import { applyFilter, filters } from "./filters";
 import { Context } from "./context";
+import { isBuiltin } from "module";
 
 export enum ValueKind {
 	NUMBER,
 	STRING,
 	BOOLEAN,
 	ARRAY,
-	FILTER,
 }
 
 export interface RuntimeValue {
@@ -47,9 +48,8 @@ export interface ArrayValue extends RuntimeValue {
 	value: RuntimeValue[];
 }
 
-export interface FilterValue extends RuntimeValue {
-	kind: ValueKind.FILTER;
-	value: Function;
+function isRuntimeValue(value?: RuntimeValue): value is RuntimeValue {
+	return !!value;
 }
 
 function isNumberValue(value: RuntimeValue): value is NumberValue {
@@ -64,29 +64,14 @@ function isArrayValue(value: RuntimeValue): value is ArrayValue {
 	return value.kind === ValueKind.ARRAY;
 }
 
-function isFilterValue(value: RuntimeValue): value is FilterValue {
-	return value.kind === ValueKind.FILTER;
-}
-
 export class Compiler {
 	readonly #rootNode: AstRootNode;
 	readonly #context: Context;
+	#previousEvaluation?: RuntimeValue;
 
 	constructor(rootNode: AstRootNode, context: Context) {
 		this.#rootNode = rootNode;
 		this.#context = context;
-	}
-
-	#applyFilter(filter: FilterValue, left: RuntimeValue): RuntimeValue {
-		const applied = applyFilter(filter.value.name, left.value);
-
-		if (typeof applied === "number") {
-			return { kind: ValueKind.NUMBER, value: applied };
-		} else if (typeof applied === "string") {
-			return { kind: ValueKind.STRING, value: applied };
-		}
-
-		throw new Error(`Unexpected filter output: ${applied}`);
 	}
 
 	#evaluateRootNode(root: AstRootNode): StringValue {
@@ -122,19 +107,29 @@ export class Compiler {
 		return this.#evaluate(template.expression);
 	}
 
+	#evaluateFilterNode(filter: AstFilterNode): RuntimeValue {
+		const args: RuntimeValue[] = [this.#previousEvaluation, ...filter.args.map((arg) => this.#evaluate(arg))].filter(
+			isRuntimeValue
+		);
+		const applied = applyFilter(filter.name, args);
+
+		if (typeof applied === "number") {
+			return { kind: ValueKind.NUMBER, value: applied };
+		} else if (typeof applied === "string") {
+			return { kind: ValueKind.STRING, value: applied };
+		}
+
+		throw new Error(`Unexpected filter output: ${applied}`);
+	}
+
 	#evaluateBinaryExpressionNode(binaryExpression: AstBinaryExpressionNode): RuntimeValue {
 		const left = this.#evaluate(binaryExpression.left);
 		const right = this.#evaluate(binaryExpression.right);
 		const operator = this.#evaluate(binaryExpression.operator);
 
 		switch (operator.value) {
-			case "OP_PIPE": {
-				if (isFilterValue(right)) {
-					return this.#applyFilter(right, left);
-				}
-
-				throw new Error(`Expected filter, got ${right.kind}`);
-			}
+			case "OP_PIPE":
+				return this.#evaluateFilterNode(binaryExpression.right as AstFilterNode);
 			case "OP_PLUS": {
 				if (!isNumberValue(left) || !isNumberValue(right)) {
 					throw new Error(`Expected numbers, got ${left.kind}, ${right.kind}`);
@@ -261,9 +256,7 @@ export class Compiler {
 
 	#evaluateLiteralIdentifierNode(identifier: AstLiteralIdentifierNode): RuntimeValue {
 		if (filters.has(identifier.name)) {
-			const builtin = filters.get(identifier.name)!;
-
-			return { kind: ValueKind.FILTER, value: builtin.func };
+			return this.#evaluateFilterNode(new AstFilterNode(identifier.name, []));
 		}
 
 		const variable = this.#context.get(identifier.name);
@@ -271,28 +264,46 @@ export class Compiler {
 	}
 
 	#evaluate(node: AstNode): RuntimeValue {
+		let evaluated: RuntimeValue;
+
 		switch (node.kind) {
 			case "AstRawTextNode":
-				return this.#evaluateRawTextNode(node as AstRawTextNode);
+				evaluated = this.#evaluateRawTextNode(node as AstRawTextNode);
+				break;
 			case "AstTemplateNode":
-				return this.#evaluateTemplateNode(node as AstTemplateNode);
+				evaluated = this.#evaluateTemplateNode(node as AstTemplateNode);
+				break;
 			case "AstIfNode":
-				return this.#evaluateIfNode(node as AstIfNode);
+				evaluated = this.#evaluateIfNode(node as AstIfNode);
+				break;
 			case "AstForNode":
-				return this.#evaluateForNode(node as AstForNode);
+				evaluated = this.#evaluateForNode(node as AstForNode);
+				break;
 			case "AstBinaryOperatorNode":
-				return this.#evaluateBinaryOperatorNode(node as AstBinaryOperatorNode);
+				evaluated = this.#evaluateBinaryOperatorNode(node as AstBinaryOperatorNode);
+				break;
 			case "AstBinaryExpressionNode":
-				return this.#evaluateBinaryExpressionNode(node as AstBinaryExpressionNode);
+				evaluated = this.#evaluateBinaryExpressionNode(node as AstBinaryExpressionNode);
+				break;
+			case "AstFilterNode":
+				evaluated = this.#evaluateFilterNode(node as AstFilterNode);
+				break;
 			case "AstLiteralStringNode":
-				return this.#evaluateLiteralStringNode(node as AstLiteralStringNode);
+				evaluated = this.#evaluateLiteralStringNode(node as AstLiteralStringNode);
+				break;
 			case "AstLiteralNumberNode":
-				return this.#evaluateLiteralNumberNode(node as AstLiteralNumberNode);
+				evaluated = this.#evaluateLiteralNumberNode(node as AstLiteralNumberNode);
+				break;
 			case "AstLiteralIdentifierNode":
-				return this.#evaluateLiteralIdentifierNode(node as AstLiteralIdentifierNode);
+				evaluated = this.#evaluateLiteralIdentifierNode(node as AstLiteralIdentifierNode);
+				break;
 			default:
 				throw new Error(`Unexpected node kind: ${node.kind}`);
 		}
+
+		this.#previousEvaluation = evaluated;
+
+		return evaluated;
 	}
 
 	compile(): string {

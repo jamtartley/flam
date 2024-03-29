@@ -1,5 +1,6 @@
 import * as t from "io-ts";
 import { PathReporter } from "io-ts/PathReporter";
+import { ArrayValue, RuntimeValue, ValueKind } from "./compiler";
 
 export const filters = new Map<string, { func: Function; validators: t.Type<any>[] }>();
 
@@ -27,6 +28,16 @@ export class StringFilters {
 		return x.toUpperCase();
 	}
 
+	/* @register([t.array(t.string), t.string])
+	static join(x: string[], y: string) {
+		return x.join(y);
+	} */
+
+	@register([t.array(t.string), t.string])
+	static join(x: string[], y: string) {
+		return x.join(y);
+	}
+
 	@register([t.string])
 	static flammify(x: string) {
 		return x
@@ -42,16 +53,28 @@ export class StringFilters {
 	}
 }
 
-export function applyFilter(name: string, ...args: any[]) {
+function runtimeToRaw(value: RuntimeValue): any {
+	switch (value.kind) {
+		case ValueKind.NUMBER:
+		case ValueKind.STRING:
+		case ValueKind.BOOLEAN:
+			return value.value;
+		case ValueKind.ARRAY:
+			return (value as ArrayValue).value.map(runtimeToRaw);
+	}
+}
+
+export function applyFilter(name: string, args: RuntimeValue[]) {
 	if (!filters.has(name)) {
 		throw new FilterNotFoundError(name);
 	}
 
+	const rawArgs = args.map(runtimeToRaw);
 	const { func, validators } = filters.get(name)!;
 
 	for (let i = 0; i < validators.length; i++) {
 		const validator = validators[i]!;
-		const result = validator.decode(args[i]);
+		const result = validator.decode(rawArgs[i]);
 
 		if (result._tag === "Left") {
 			// @CLEANUP: Improve error message when applying filters
@@ -59,7 +82,7 @@ export function applyFilter(name: string, ...args: any[]) {
 		}
 	}
 
-	return func(...args);
+	return func(...rawArgs);
 }
 
 class FilterNotFoundError extends Error {
