@@ -198,7 +198,7 @@ export class Parser {
 		this.#eat("KEYWORD_FOR");
 		const variable = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
 		this.#eat("KEYWORD_IN");
-		const collection = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
+		const collection = this.#parseExpressionFactor();
 		this.#eat("CONTROL_END");
 
 		const body: AstStatementNode[] = [];

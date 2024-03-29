@@ -262,6 +262,36 @@ test("Compiler outputs for loop", () => {
 	assert.equal(output, "123");
 });
 
+test("Compiler outputs for loop when collection is nested member", () => {
+	const context = Context.fromObj({
+		company: {
+			name: "Mutiny",
+			employees: [
+				{ name: "Cameron", title: "cto" },
+				{ name: "Donna", title: "ceo" },
+			],
+		},
+	});
+	const compiler = new Compiler(
+		new AstRootNode([
+			new AstForNode(
+				new AstLiteralIdentifierNode("employee"),
+				new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [new AstLiteralStringNode("employees")]),
+				[
+					new AstTemplateNode(
+						new AstMemberAccessNode(new AstLiteralIdentifierNode("employee"), [new AstLiteralStringNode("name")])
+					),
+				]
+			),
+		]),
+		context
+	);
+
+	const output = compiler.compile();
+
+	assert.equal(output, "CameronDonna");
+});
+
 test("Compiler outputs nested for loop", () => {
 	const context = new Context({
 		variables: new Map([

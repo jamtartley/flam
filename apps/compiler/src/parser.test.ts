@@ -18,10 +18,10 @@ import {
 
 test("Parser emits a single AstRootNode", () => {
 	const tokens: Token[] = [
-		new Token({ kind: "TEMPLATE_START", value: "{=" }),
+		new Token({ kind: "TEMPLATE_START" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "42" }),
-		new Token({ kind: "TEMPLATE_END", value: "=}" }),
-		new Token({ kind: "EOF", value: "" }),
+		new Token({ kind: "TEMPLATE_END" }),
+		new Token({ kind: "EOF" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -30,10 +30,10 @@ test("Parser emits a single AstRootNode", () => {
 
 test("Parser emits an AstTemplateNode", () => {
 	const tokens: Token[] = [
-		new Token({ kind: "TEMPLATE_START", value: "{=" }),
+		new Token({ kind: "TEMPLATE_START" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "42" }),
-		new Token({ kind: "TEMPLATE_END", value: "=}" }),
-		new Token({ kind: "EOF", value: "" }),
+		new Token({ kind: "TEMPLATE_END" }),
+		new Token({ kind: "EOF" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -43,10 +43,10 @@ test("Parser emits an AstTemplateNode", () => {
 
 test("Parser emits an AstLiteralNumberNode inside template", () => {
 	const tokens: Token[] = [
-		new Token({ kind: "TEMPLATE_START", value: "{=" }),
+		new Token({ kind: "TEMPLATE_START" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "42" }),
-		new Token({ kind: "TEMPLATE_END", value: "=}" }),
-		new Token({ kind: "EOF", value: "" }),
+		new Token({ kind: "TEMPLATE_END" }),
+		new Token({ kind: "EOF" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -55,12 +55,12 @@ test("Parser emits an AstLiteralNumberNode inside template", () => {
 
 test("Parser emits an AstBinaryExpressionNode for a simple addition inside template", () => {
 	const tokens: Token[] = [
-		new Token({ kind: "TEMPLATE_START", value: "{=" }),
+		new Token({ kind: "TEMPLATE_START" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "42" }),
-		new Token({ kind: "OP_PLUS", value: "+" }),
+		new Token({ kind: "OP_PLUS" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "21" }),
-		new Token({ kind: "TEMPLATE_END", value: "=}" }),
-		new Token({ kind: "EOF", value: "" }),
+		new Token({ kind: "TEMPLATE_END" }),
+		new Token({ kind: "EOF" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -78,14 +78,14 @@ test("Parser emits an AstBinaryExpressionNode for a simple addition inside templ
 
 test("Parser emits an AstBinaryExpressionNode for a nested addition inside template", () => {
 	const tokens: Token[] = [
-		new Token({ kind: "TEMPLATE_START", value: "{=" }),
+		new Token({ kind: "TEMPLATE_START" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "42" }),
-		new Token({ kind: "OP_PLUS", value: "+" }),
+		new Token({ kind: "OP_PLUS" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "21" }),
-		new Token({ kind: "OP_MINUS", value: "-" }),
+		new Token({ kind: "OP_MINUS" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "7" }),
-		new Token({ kind: "TEMPLATE_END", value: "=}" }),
-		new Token({ kind: "EOF", value: "" }),
+		new Token({ kind: "TEMPLATE_END" }),
+		new Token({ kind: "EOF" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -114,8 +114,8 @@ test("Parser emits an AstFilterNode inside a template", () => {
 		new Token({ kind: "L_PAREN" }),
 		new Token({ kind: "LITERAL_STRING", value: "," }),
 		new Token({ kind: "R_PAREN" }),
-		new Token({ kind: "TEMPLATE_END", value: "=}" }),
-		new Token({ kind: "EOF", value: "" }),
+		new Token({ kind: "TEMPLATE_END" }),
+		new Token({ kind: "EOF" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -132,16 +132,16 @@ test("Parser emits an AstFilterNode inside a template", () => {
 
 test("Parser handles precedence in an AstBinaryExpressionNode", () => {
 	const tokens: Token[] = [
-		new Token({ kind: "TEMPLATE_START", value: "{=" }),
+		new Token({ kind: "TEMPLATE_START" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "42" }),
-		new Token({ kind: "OP_PLUS", value: "+" }),
+		new Token({ kind: "OP_PLUS" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "21" }),
-		new Token({ kind: "OP_MULTIPLY", value: "*" }),
+		new Token({ kind: "OP_MULTIPLY" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "7" }),
-		new Token({ kind: "OP_MINUS", value: "-" }),
+		new Token({ kind: "OP_MINUS" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "1" }),
-		new Token({ kind: "TEMPLATE_END", value: "=}" }),
-		new Token({ kind: "EOF", value: "" }),
+		new Token({ kind: "TEMPLATE_END" }),
+		new Token({ kind: "EOF" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -167,16 +167,16 @@ test("Parser handles precedence in an AstBinaryExpressionNode", () => {
 
 test("Parser handles precedence in an AstBinaryExpressionNode with parentheses", () => {
 	const tokens: Token[] = [
-		new Token({ kind: "TEMPLATE_START", value: "{=" }),
+		new Token({ kind: "TEMPLATE_START" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "42" }),
-		new Token({ kind: "OP_MULTIPLY", value: "*" }),
-		new Token({ kind: "L_PAREN", value: "(" }),
+		new Token({ kind: "OP_MULTIPLY" }),
+		new Token({ kind: "L_PAREN" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "21" }),
-		new Token({ kind: "OP_PLUS", value: "+" }),
+		new Token({ kind: "OP_PLUS" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "7" }),
-		new Token({ kind: "R_PAREN", value: ")" }),
-		new Token({ kind: "TEMPLATE_END", value: "=}" }),
-		new Token({ kind: "EOF", value: "" }),
+		new Token({ kind: "R_PAREN" }),
+		new Token({ kind: "TEMPLATE_END" }),
+		new Token({ kind: "EOF" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -198,17 +198,17 @@ test("Parser handles precedence in an AstBinaryExpressionNode with parentheses",
 
 test("Parser handles a single if statement", () => {
 	const tokens: Token[] = [
-		new Token({ kind: "CONTROL_START", value: "{!" }),
-		new Token({ kind: "KEYWORD_IF", value: "" }),
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_IF" }),
 		new Token({ kind: "LITERAL_IDENTIFIER", value: "x" }),
-		new Token({ kind: "OP_GT", value: ">" }),
+		new Token({ kind: "OP_GT" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "10" }),
-		new Token({ kind: "CONTROL_END", value: "!}" }),
+		new Token({ kind: "CONTROL_END" }),
 		new Token({ kind: "RAW", value: "In if statement" }),
-		new Token({ kind: "CONTROL_START", value: "{!" }),
-		new Token({ kind: "KEYWORD_FI", value: "" }),
-		new Token({ kind: "CONTROL_END", value: "!}" }),
-		new Token({ kind: "EOF", value: "" }),
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_FI" }),
+		new Token({ kind: "CONTROL_END" }),
+		new Token({ kind: "EOF" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -228,18 +228,18 @@ test("Parser handles a single if statement", () => {
 
 test("Parser handles a single if statement with multiple statements", () => {
 	const tokens: Token[] = [
-		new Token({ kind: "CONTROL_START", value: "{!" }),
-		new Token({ kind: "KEYWORD_IF", value: "" }),
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_IF" }),
 		new Token({ kind: "LITERAL_IDENTIFIER", value: "x" }),
-		new Token({ kind: "OP_EQ", value: "==" }),
+		new Token({ kind: "OP_EQ" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "10" }),
-		new Token({ kind: "CONTROL_END", value: "!}" }),
+		new Token({ kind: "CONTROL_END" }),
 		new Token({ kind: "RAW", value: "In if statement" }),
 		new Token({ kind: "RAW", value: "In if statement2" }),
-		new Token({ kind: "CONTROL_START", value: "{!" }),
-		new Token({ kind: "KEYWORD_FI", value: "" }),
-		new Token({ kind: "CONTROL_END", value: "!}" }),
-		new Token({ kind: "EOF", value: "" }),
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_FI" }),
+		new Token({ kind: "CONTROL_END" }),
+		new Token({ kind: "EOF" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -259,21 +259,21 @@ test("Parser handles a single if statement with multiple statements", () => {
 
 test("Parser handles an if statement with else clause", () => {
 	const tokens: Token[] = [
-		new Token({ kind: "CONTROL_START", value: "{!" }),
-		new Token({ kind: "KEYWORD_IF", value: "" }),
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_IF" }),
 		new Token({ kind: "LITERAL_IDENTIFIER", value: "x" }),
-		new Token({ kind: "OP_GT", value: ">" }),
+		new Token({ kind: "OP_GT" }),
 		new Token({ kind: "LITERAL_NUMBER", value: "10" }),
-		new Token({ kind: "CONTROL_END", value: "!}" }),
+		new Token({ kind: "CONTROL_END" }),
 		new Token({ kind: "RAW", value: "In if clause" }),
-		new Token({ kind: "CONTROL_START", value: "{!" }),
-		new Token({ kind: "KEYWORD_ELSE", value: "" }),
-		new Token({ kind: "CONTROL_END", value: "!}" }),
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_ELSE" }),
+		new Token({ kind: "CONTROL_END" }),
 		new Token({ kind: "RAW", value: "In else clause" }),
-		new Token({ kind: "CONTROL_START", value: "{!" }),
-		new Token({ kind: "KEYWORD_FI", value: "" }),
-		new Token({ kind: "CONTROL_END", value: "!}" }),
-		new Token({ kind: "EOF", value: "" }),
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_FI" }),
+		new Token({ kind: "CONTROL_END" }),
+		new Token({ kind: "EOF" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -293,18 +293,18 @@ test("Parser handles an if statement with else clause", () => {
 
 test("Parser handles a for loop", () => {
 	const tokens: Token[] = [
-		new Token({ kind: "CONTROL_START", value: "{!" }),
-		new Token({ kind: "KEYWORD_FOR", value: "" }),
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_FOR" }),
 		new Token({ kind: "LITERAL_IDENTIFIER", value: "x" }),
-		new Token({ kind: "KEYWORD_IN", value: "" }),
+		new Token({ kind: "KEYWORD_IN" }),
 		new Token({ kind: "LITERAL_IDENTIFIER", value: "y" }),
-		new Token({ kind: "CONTROL_END", value: "!}" }),
+		new Token({ kind: "CONTROL_END" }),
 		new Token({ kind: "RAW", value: "Hello, world!" }),
 		new Token({ kind: "RAW", value: "I am here" }),
-		new Token({ kind: "CONTROL_START", value: "{!" }),
-		new Token({ kind: "KEYWORD_ROF", value: "" }),
-		new Token({ kind: "CONTROL_END", value: "!}" }),
-		new Token({ kind: "EOF", value: "" }),
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_ROF" }),
+		new Token({ kind: "CONTROL_END" }),
+		new Token({ kind: "EOF" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -317,29 +317,58 @@ test("Parser handles a for loop", () => {
 	);
 });
 
+test("Parser handles a for loop where the collection is an object member", () => {
+	const tokens: Token[] = [
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_FOR" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "x" }),
+		new Token({ kind: "KEYWORD_IN" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "y" }),
+		new Token({ kind: "PERIOD" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "values" }),
+		new Token({ kind: "CONTROL_END" }),
+		new Token({ kind: "RAW", value: "Hello, world!" }),
+		new Token({ kind: "RAW", value: "I am here" }),
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_ROF" }),
+		new Token({ kind: "CONTROL_END" }),
+		new Token({ kind: "EOF" }),
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstForNode(
+			new AstLiteralIdentifierNode("x"),
+			new AstMemberAccessNode(new AstLiteralIdentifierNode("y"), [new AstLiteralStringNode("values")]),
+			[new AstRawTextNode("Hello, world!"), new AstRawTextNode("I am here")]
+		)
+	);
+});
+
 test("Parser handles a nested for loop", () => {
 	const tokens: Token[] = [
-		new Token({ kind: "CONTROL_START", value: "{!" }),
-		new Token({ kind: "KEYWORD_FOR", value: "" }),
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_FOR" }),
 		new Token({ kind: "LITERAL_IDENTIFIER", value: "x" }),
-		new Token({ kind: "KEYWORD_IN", value: "" }),
+		new Token({ kind: "KEYWORD_IN" }),
 		new Token({ kind: "LITERAL_IDENTIFIER", value: "z" }),
-		new Token({ kind: "CONTROL_END", value: "!}" }),
+		new Token({ kind: "CONTROL_END" }),
 		new Token({ kind: "RAW", value: "Hello, world!" }),
-		new Token({ kind: "CONTROL_START", value: "{!" }),
-		new Token({ kind: "KEYWORD_FOR", value: "" }),
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_FOR" }),
 		new Token({ kind: "LITERAL_IDENTIFIER", value: "y" }),
-		new Token({ kind: "KEYWORD_IN", value: "" }),
+		new Token({ kind: "KEYWORD_IN" }),
 		new Token({ kind: "LITERAL_IDENTIFIER", value: "z" }),
-		new Token({ kind: "CONTROL_END", value: "!}" }),
+		new Token({ kind: "CONTROL_END" }),
 		new Token({ kind: "RAW", value: "I am here" }),
-		new Token({ kind: "CONTROL_START", value: "{!" }),
-		new Token({ kind: "KEYWORD_ROF", value: "" }),
-		new Token({ kind: "CONTROL_END", value: "!}" }),
-		new Token({ kind: "CONTROL_START", value: "{!" }),
-		new Token({ kind: "KEYWORD_ROF", value: "" }),
-		new Token({ kind: "CONTROL_END", value: "!}" }),
-		new Token({ kind: "EOF", value: "" }),
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_ROF" }),
+		new Token({ kind: "CONTROL_END" }),
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_ROF" }),
+		new Token({ kind: "CONTROL_END" }),
+		new Token({ kind: "EOF" }),
 	];
 	const parser = new Parser(tokens).parse();
 
@@ -398,7 +427,7 @@ test("Parser handles a nested member access", () => {
 });
 
 test("Parser throws an UnexpectedTokenError if starting with a TEMPLATE_END token", () => {
-	const tokens: Token[] = [new Token({ kind: "TEMPLATE_END", value: "=}" }), new Token({ kind: "EOF", value: "" })];
+	const tokens: Token[] = [new Token({ kind: "TEMPLATE_END" }), new Token({ kind: "EOF" })];
 	const parser = new Parser(tokens);
 
 	assert.throws(() => parser.parse(), {
