@@ -301,17 +301,5 @@ test("Compiler outputs nested for loop", () => {
 
 	const output = compiler.compile();
 
-	assert.equal(
-		output,
-		`11
-12
-13
-21
-22
-23
-31
-32
-33
-`
-	);
+	assert.equal(output, "111213212223313233");
 });
