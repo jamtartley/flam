@@ -3,16 +3,18 @@ import { Context } from "./context";
 import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 
-const tokenizer = new Tokenizer('{= names |> join(", ") =}').tokenize();
+const tokenizer = new Tokenizer('{= company.name |> join(", ") =}').tokenize();
 const parser = new Parser(tokenizer.tokens).parse();
 const context = Context.fromObj({
-	company: "Mutiny",
-	established: 1983,
-	founders: {
-		cto: "Cameron",
-		ceo: "Donna",
+	company: {
+		name: "Mutiny",
+		established: 1983,
+		founders: {
+			cto: "Cameron",
+			ceo: "Donna",
+		},
+		employees: [{ name: "Bosworth", title: "Director of Engineering" }],
 	},
-	employees: [{ name: "Bosworth", title: "Director of Engineering" }],
 });
 const compiler = new Compiler(parser.rootNode, context);
 
