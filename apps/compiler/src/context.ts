@@ -1,9 +1,29 @@
-import { RuntimeValue } from "./compiler";
+import { ArrayValue, RuntimeValue, ValueKind } from "./compiler";
 
 type ContextConstructor = {
 	parent?: Context;
 	variables?: Map<string, RuntimeValue>;
 };
+
+function convertToRuntimeValue(input: unknown): RuntimeValue {
+	if (typeof input === "string") {
+		return { kind: ValueKind.STRING, value: input };
+	} else if (typeof input === "number") {
+		return { kind: ValueKind.NUMBER, value: input };
+	} else if (typeof input === "boolean") {
+		return { kind: ValueKind.BOOLEAN, value: input };
+	} else if (Array.isArray(input)) {
+		const arrayValue: ArrayValue = { kind: ValueKind.ARRAY, value: [] };
+
+		for (const item of input) {
+			arrayValue.value.push(convertToRuntimeValue(item));
+		}
+
+		return arrayValue;
+	}
+
+	throw new Error(`Unsupported type: ${typeof input}`);
+}
 
 export class Context {
 	public variables: Map<string, RuntimeValue> = new Map();
@@ -16,6 +36,15 @@ export class Context {
 			this.#parent = parent;
 			this.variables = variables ?? new Map();
 		}
+	}
+
+	static fromObj(obj: object): Context {
+		const variables = new Map(Object.entries(obj).map(([name, value]) => [name, convertToRuntimeValue(value)]));
+		const context = new Context({
+			variables,
+		});
+
+		return context;
 	}
 
 	add(name: string, value: RuntimeValue): RuntimeValue {
