@@ -1,12 +1,12 @@
-import { RuntimeValue, UnresolvedValue } from "./compiler";
+import { RuntimeValue } from "./compiler";
 
 type ContextConstructor = {
 	parent?: Context;
-	variables?: Map<string, UnresolvedValue>;
+	variables?: Map<string, RuntimeValue>;
 };
 
 export class Context {
-	public variables: Map<string, UnresolvedValue> = new Map();
+	public variables: Map<string, RuntimeValue> = new Map();
 	#parent?: Context;
 
 	constructor(init?: ContextConstructor) {
@@ -18,7 +18,7 @@ export class Context {
 		}
 	}
 
-	add<T>(name: string, value: RuntimeValue<T>): RuntimeValue<T> {
+	add(name: string, value: RuntimeValue): RuntimeValue {
 		if (this.variables.has(name)) {
 			throw new Error(`Variable "${name}" already exists`);
 		}
@@ -28,7 +28,7 @@ export class Context {
 		return value;
 	}
 
-	get(name: string): UnresolvedValue {
+	get(name: string): RuntimeValue {
 		const context = this.findContextForVariable(name);
 
 		return context.variables.get(name)!;
