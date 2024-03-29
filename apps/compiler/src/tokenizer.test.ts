@@ -105,7 +105,7 @@ test("Tokenizer generates pipe token inside tags", () => {
 	expectTokenKinds(tokenizer.tokens, [
 		"TEMPLATE_START",
 		"LITERAL_STRING",
-		"OP_PIPE",
+		"PIPE",
 		"LITERAL_IDENTIFIER",
 		"TEMPLATE_END",
 		"EOF",
@@ -124,7 +124,7 @@ test("Tokenizer generates parens inside tags", () => {
 	expectTokenKinds(tokenizer.tokens, [
 		"TEMPLATE_START",
 		"LITERAL_IDENTIFIER",
-		"OP_PIPE",
+		"PIPE",
 		"LITERAL_IDENTIFIER",
 		"L_PAREN",
 		"LITERAL_STRING",
@@ -154,7 +154,7 @@ test("Tokenizer generates periods inside tags", () => {
 		"LITERAL_IDENTIFIER",
 		"PERIOD",
 		"LITERAL_IDENTIFIER",
-		"OP_PIPE",
+		"PIPE",
 		"LITERAL_IDENTIFIER",
 		"L_PAREN",
 		"LITERAL_STRING",

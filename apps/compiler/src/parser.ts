@@ -2,6 +2,7 @@ import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,
 	AstExpressionNode,
+	AstFilterNode,
 	AstForNode,
 	AstIfNode,
 	AstLiteralIdentifierNode,
@@ -80,7 +81,7 @@ export class Parser {
 			case "OP_EQ":
 			case "OP_NE":
 				return 1;
-			case "OP_PIPE":
+			case "PIPE":
 				return 0;
 			default:
 				return -1;
@@ -230,13 +231,35 @@ export class Parser {
 
 	#parseTemplate(): AstTemplateNode {
 		this.#eat("TEMPLATE_START");
+		let baseExpression = this.#parseBinaryExpression(this.#parseExpressionFactor(), 0);
 
-		const left = this.#parseExpressionFactor();
-		const expression = this.#parseBinaryExpression(left, 0);
+		while (this.#current().kind === "PIPE") {
+			this.#eat("PIPE");
+
+			const filterName = this.#eat("LITERAL_IDENTIFIER").value;
+			const filterNode = new AstFilterNode(filterName, []);
+
+			if (this.#current().kind === "L_PAREN") {
+				this.#eat("L_PAREN");
+
+				while (this.#current().kind !== "R_PAREN") {
+					const arg = this.#parseExpressionFactor();
+					filterNode.args.push(arg);
+
+					if (this.#current().kind === "COMMA") {
+						this.#eat("COMMA");
+					}
+				}
+
+				this.#eat("R_PAREN");
+			}
+
+			filterNode.args.unshift(baseExpression);
+			baseExpression = filterNode;
+		}
 
 		this.#eat("TEMPLATE_END");
-
-		return new AstTemplateNode(expression);
+		return new AstTemplateNode(baseExpression);
 	}
 
 	#parseNode(): AstStatementNode | null {
