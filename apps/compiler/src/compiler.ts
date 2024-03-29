@@ -77,7 +77,6 @@ function isObjectValue(value: RuntimeValue): value is ObjectValue {
 export class Compiler {
 	readonly #rootNode: AstRootNode;
 	readonly #context: Context;
-	#previousEvaluation?: RuntimeValue;
 
 	constructor(rootNode: AstRootNode, context: Context) {
 		this.#rootNode = rootNode;
@@ -118,18 +117,9 @@ export class Compiler {
 	}
 
 	#evaluateFilterNode(filter: AstFilterNode): RuntimeValue {
-		const args: RuntimeValue[] = [this.#previousEvaluation, ...filter.args.map((arg) => this.#evaluate(arg))].filter(
-			isRuntimeValue
-		);
-		const applied = applyFilter(filter.name.name, args);
+		const args: RuntimeValue[] = [...filter.args.map((arg) => this.#evaluate(arg))].filter(isRuntimeValue);
 
-		if (typeof applied === "number") {
-			return { kind: ValueKind.NUMBER, value: applied };
-		} else if (typeof applied === "string") {
-			return { kind: ValueKind.STRING, value: applied };
-		}
-
-		throw new Error(`Unexpected filter output: ${applied}`);
+		return applyFilter(filter.name.name, args);
 	}
 
 	#evaluateMemberAccessNode(memberAccess: AstMemberAccessNode): RuntimeValue {
@@ -292,49 +282,32 @@ export class Compiler {
 	}
 
 	#evaluate(node: AstNode): RuntimeValue {
-		let evaluated: RuntimeValue;
-
 		switch (node.kind) {
 			case "AstRawTextNode":
-				evaluated = this.#evaluateRawTextNode(node as AstRawTextNode);
-				break;
+				return this.#evaluateRawTextNode(node as AstRawTextNode);
 			case "AstTemplateNode":
-				evaluated = this.#evaluateTemplateNode(node as AstTemplateNode);
-				break;
+				return this.#evaluateTemplateNode(node as AstTemplateNode);
 			case "AstIfNode":
-				evaluated = this.#evaluateIfNode(node as AstIfNode);
-				break;
+				return this.#evaluateIfNode(node as AstIfNode);
 			case "AstForNode":
-				evaluated = this.#evaluateForNode(node as AstForNode);
-				break;
+				return this.#evaluateForNode(node as AstForNode);
 			case "AstBinaryOperatorNode":
-				evaluated = this.#evaluateBinaryOperatorNode(node as AstBinaryOperatorNode);
-				break;
+				return this.#evaluateBinaryOperatorNode(node as AstBinaryOperatorNode);
 			case "AstBinaryExpressionNode":
-				evaluated = this.#evaluateBinaryExpressionNode(node as AstBinaryExpressionNode);
-				break;
+				return this.#evaluateBinaryExpressionNode(node as AstBinaryExpressionNode);
 			case "AstFilterNode":
-				evaluated = this.#evaluateFilterNode(node as AstFilterNode);
-				break;
+				return this.#evaluateFilterNode(node as AstFilterNode);
 			case "AstMemberAccessNode":
-				evaluated = this.#evaluateMemberAccessNode(node as AstMemberAccessNode);
-				break;
+				return this.#evaluateMemberAccessNode(node as AstMemberAccessNode);
 			case "AstLiteralStringNode":
-				evaluated = this.#evaluateLiteralStringNode(node as AstLiteralStringNode);
-				break;
+				return this.#evaluateLiteralStringNode(node as AstLiteralStringNode);
 			case "AstLiteralNumberNode":
-				evaluated = this.#evaluateLiteralNumberNode(node as AstLiteralNumberNode);
-				break;
+				return this.#evaluateLiteralNumberNode(node as AstLiteralNumberNode);
 			case "AstLiteralIdentifierNode":
-				evaluated = this.#evaluateLiteralIdentifierNode(node as AstLiteralIdentifierNode);
-				break;
+				return this.#evaluateLiteralIdentifierNode(node as AstLiteralIdentifierNode);
 			default:
 				throw new Error(`Unexpected node kind: ${node.kind}`);
 		}
-
-		this.#previousEvaluation = evaluated;
-
-		return evaluated;
 	}
 
 	compile(): string {
