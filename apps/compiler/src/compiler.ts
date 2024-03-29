@@ -236,7 +236,7 @@ export class Compiler {
 	}
 
 	#evaluateForNode(forNode: AstForNode): ArrayValue {
-		const collection = this.#evaluateLiteralIdentifierNode(forNode.collection);
+		const collection = this.#evaluate(forNode.collection);
 
 		if (!isArrayValue(collection)) {
 			throw new Error(`Expected array, got ${collection.kind}`);

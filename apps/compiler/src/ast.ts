@@ -90,10 +90,10 @@ export class AstIfNode extends AstStatementNode {
 
 export class AstForNode extends AstStatementNode {
 	public readonly variable: AstLiteralIdentifierNode;
-	public readonly collection: AstLiteralIdentifierNode;
+	public readonly collection: AstExpressionNode;
 	public readonly body: AstStatementNode[];
 
-	constructor(variable: AstLiteralIdentifierNode, collection: AstLiteralIdentifierNode, body: AstStatementNode[]) {
+	constructor(variable: AstLiteralIdentifierNode, collection: AstExpressionNode, body: AstStatementNode[]) {
 		super("AstForNode");
 
 		this.variable = variable;

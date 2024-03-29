@@ -3,11 +3,12 @@ import { Context } from "./context";
 import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 
-const tokenizer = new Tokenizer(
-	`<p>Mutiny has {= company.employees |> count =} employees:</p>
-<p>{= company.employees |> pluck("name") |> alphabetize |> reverse |> join(", ") |> titlecase =}</p>
-`
-).tokenize();
+const tokenizer = new Tokenizer(`
+{! for employee in company.employees !}
+{= employee.name =} is a {= employee.title =}
+{! rof !}
+`).tokenize();
+
 const parser = new Parser(tokenizer.tokens).parse();
 const context = Context.fromObj({
 	company: {
