@@ -107,9 +107,7 @@ export class Compiler {
 	}
 
 	#evaluateRawTextNode(rawText: AstRawTextNode): StringValue {
-		const value = rawText.value === "\n" ? "" : rawText.value;
-
-		return { kind: ValueKind.STRING, value };
+		return { kind: ValueKind.STRING, value: rawText.value };
 	}
 
 	#evaluateTemplateNode(template: AstTemplateNode): RuntimeValue {
@@ -117,7 +115,7 @@ export class Compiler {
 	}
 
 	#evaluateFilterNode(filter: AstFilterNode): RuntimeValue {
-		const args: RuntimeValue[] = [...filter.args.map((arg) => this.#evaluate(arg))].filter(isRuntimeValue);
+		const args: RuntimeValue[] = filter.args.map((arg) => this.#evaluate(arg)).filter(isRuntimeValue);
 
 		return applyFilter(filter.name.name, args);
 	}
@@ -242,7 +240,7 @@ export class Compiler {
 			throw new Error(`Expected array, got ${collection.kind}`);
 		}
 
-		const items = [];
+		const items: RuntimeValue[] = [];
 
 		for (const item of collection.value) {
 			this.#context.add(forNode.variable.name, item);

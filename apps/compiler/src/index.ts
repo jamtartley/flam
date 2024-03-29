@@ -4,24 +4,17 @@ import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 
 const tokenizer = new Tokenizer(`
-{! for employee in company.employees |> pluck("name") !}
-{= employee =} 
+{! for name in company.employees |> pluck("reports") |> pluck("name") !}
+{= name =}
 {! rof !}
 `).tokenize();
 
 const parser = new Parser(tokenizer.tokens).parse();
 const context = Context.fromObj({
 	company: {
-		name: "Mutiny",
-		established: 1983,
-		founders: {
-			cto: "Cameron",
-			ceo: "Donna",
-		},
 		employees: [
-			{ name: "Yo-Yo Engberk", title: "Software Engineer" },
-			{ name: "John Bosworth", title: "Director of Engineering" },
-			{ name: "Tom Rendon", title: "Software Engineer" },
+			{ name: "Cameron", title: "cto", reports: [{ name: "Yo-yo" }, { name: "Tom" }] },
+			{ name: "Donna", title: "ceo", reports: [{ name: "John" }, { name: "Cameron" }] },
 		],
 	},
 });
