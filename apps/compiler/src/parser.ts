@@ -8,6 +8,7 @@ import {
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstLiteralStringNode,
+	AstMakeNode,
 	AstMemberAccessNode,
 	AstRawTextNode,
 	AstRootNode,
@@ -250,6 +251,16 @@ export class Parser {
 		return new AstForNode(variable, collection, body);
 	}
 
+	#parseMake(): AstMakeNode {
+		this.#eat("KEYWORD_MAKE");
+		const name = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
+		this.#eat("KEYWORD_BECOME");
+		let value = this.#parseExpression();
+		this.#eat("CONTROL_END");
+
+		return new AstMakeNode(name, value);
+	}
+
 	#parseControl(): AstStatementNode {
 		this.#eat("CONTROL_START");
 
@@ -262,8 +273,11 @@ export class Parser {
 			case "KEYWORD_FOR":
 				statement = this.#parseFor();
 				break;
+			case "KEYWORD_MAKE":
+				statement = this.#parseMake();
+				break;
 			default:
-				throw new UnexpectedTokenError(["KEYWORD_IF"], this.#current().kind);
+				throw new UnexpectedTokenError(["KEYWORD_IF", "KEYWORD_FOR", "KEYWORD_MAKE"], this.#current().kind);
 		}
 
 		return statement;

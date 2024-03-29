@@ -11,6 +11,7 @@ import {
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstLiteralStringNode,
+	AstMakeNode,
 	AstMemberAccessNode,
 	AstRawTextNode,
 	AstTemplateNode,
@@ -288,6 +289,42 @@ test("Parser handles an if statement with else clause", () => {
 			[new AstRawTextNode("In if clause")],
 			[new AstRawTextNode("In else clause")]
 		)
+	);
+});
+
+test("Parser handles a simple make statement", () => {
+	const tokens: Token[] = [
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_MAKE" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "x" }),
+		new Token({ kind: "KEYWORD_BECOME" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "10" }),
+		new Token({ kind: "CONTROL_END" }),
+		new Token({ kind: "EOF" }),
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstMakeNode(new AstLiteralIdentifierNode("x"), new AstLiteralNumberNode(10))
+	);
+});
+
+test("Parser handles a make with an expression value", () => {
+	const tokens: Token[] = [
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_MAKE" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "x" }),
+		new Token({ kind: "KEYWORD_BECOME" }),
+		new Token({ kind: "LITERAL_NUMBER", value: "10" }),
+		new Token({ kind: "CONTROL_END" }),
+		new Token({ kind: "EOF" }),
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstMakeNode(new AstLiteralIdentifierNode("x"), new AstLiteralNumberNode(10))
 	);
 });
 
