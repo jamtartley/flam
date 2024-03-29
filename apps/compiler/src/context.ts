@@ -20,6 +20,14 @@ function convertToRuntimeValue(input: unknown): RuntimeValue {
 		}
 
 		return arrayValue;
+	} else if (typeof input === "object" && input !== null) {
+		const objectValue: Record<string, RuntimeValue> = {};
+
+		for (const [key, value] of Object.entries(input)) {
+			objectValue[key] = convertToRuntimeValue(value);
+		}
+
+		return { kind: ValueKind.OBJECT, value: objectValue };
 	}
 
 	throw new Error(`Unsupported type: ${typeof input}`);
