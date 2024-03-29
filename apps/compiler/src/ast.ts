@@ -4,6 +4,7 @@ export type NodeType =
 	| "AstBinaryExpressionNode"
 	| "AstIfNode"
 	| "AstForNode"
+	| "AstMakeNode"
 	| "AstRawTextNode"
 	| "AstLiteralStringNode"
 	| "AstLiteralNumberNode"
@@ -99,6 +100,18 @@ export class AstForNode extends AstStatementNode {
 		this.variable = variable;
 		this.collection = collection;
 		this.body = body;
+	}
+}
+
+export class AstMakeNode extends AstStatementNode {
+	public readonly name: AstLiteralIdentifierNode;
+	public readonly value: AstExpressionNode;
+
+	constructor(name: AstLiteralIdentifierNode, value: AstExpressionNode) {
+		super("AstMakeNode");
+
+		this.name = name;
+		this.value = value;
 	}
 }
 
