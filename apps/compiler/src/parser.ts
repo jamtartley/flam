@@ -93,12 +93,12 @@ export class Parser {
 		switch (this.#current().kind) {
 			case "LITERAL_IDENTIFIER": {
 				const initial = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
-				const memberChain: AstLiteralIdentifierNode[] = [];
+				const memberChain: AstLiteralStringNode[] = [];
 
 				while (this.#current().kind === "PERIOD") {
 					this.#eat("PERIOD");
 
-					memberChain.push(new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value));
+					memberChain.push(new AstLiteralStringNode(this.#eat("LITERAL_IDENTIFIER").value));
 				}
 
 				return memberChain.length > 0 ? new AstMemberAccessNode(initial, memberChain) : initial;

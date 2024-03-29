@@ -7,6 +7,7 @@ import {
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstLiteralStringNode,
+	AstMemberAccessNode,
 	AstNode,
 	AstRawTextNode,
 	AstRootNode,
@@ -69,6 +70,10 @@ function isArrayValue(value: RuntimeValue): value is ArrayValue {
 	return value.kind === ValueKind.ARRAY;
 }
 
+function isObjectValue(value: RuntimeValue): value is ObjectValue {
+	return value.kind === ValueKind.OBJECT;
+}
+
 export class Compiler {
 	readonly #rootNode: AstRootNode;
 	readonly #context: Context;
@@ -125,6 +130,26 @@ export class Compiler {
 		}
 
 		throw new Error(`Unexpected filter output: ${applied}`);
+	}
+
+	#evaluateMemberAccessNode(memberAccess: AstMemberAccessNode): RuntimeValue {
+		let object = this.#evaluateLiteralIdentifierNode(memberAccess.object);
+
+		if (!isObjectValue(object)) {
+			throw new Error(`Expected object, got ${object.kind}`);
+		}
+
+		for (const propertyRuntime of memberAccess.properties) {
+			const prop = propertyRuntime.value;
+
+			if (isObjectValue(object) && object.value.hasOwnProperty(prop)) {
+				object = object.value[prop]!;
+			} else {
+				throw new Error(`Property "${prop}" not found on object`);
+			}
+		}
+
+		return object;
 	}
 
 	#evaluateBinaryExpressionNode(binaryExpression: AstBinaryExpressionNode): RuntimeValue {
@@ -290,6 +315,9 @@ export class Compiler {
 				break;
 			case "AstFilterNode":
 				evaluated = this.#evaluateFilterNode(node as AstFilterNode);
+				break;
+			case "AstMemberAccessNode":
+				evaluated = this.#evaluateMemberAccessNode(node as AstMemberAccessNode);
 				break;
 			case "AstLiteralStringNode":
 				evaluated = this.#evaluateLiteralStringNode(node as AstLiteralStringNode);
