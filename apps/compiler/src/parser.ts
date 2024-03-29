@@ -148,6 +148,37 @@ export class Parser {
 		return left;
 	}
 
+	#parseExpression(): AstExpressionNode {
+		let base = this.#parseBinaryExpression(this.#parseExpressionFactor(), 0);
+
+		while (this.#current().kind === "PIPE") {
+			this.#eat("PIPE");
+
+			const filterName = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
+			const filterNode = new AstFilterNode(filterName, []);
+
+			if (this.#current().kind === "L_PAREN") {
+				this.#eat("L_PAREN");
+
+				while (this.#current().kind !== "R_PAREN") {
+					const arg = this.#parseExpressionFactor();
+					filterNode.args.push(arg);
+
+					if (this.#current().kind === "COMMA") {
+						this.#eat("COMMA");
+					}
+				}
+
+				this.#eat("R_PAREN");
+			}
+
+			filterNode.args.unshift(base);
+			base = filterNode;
+		}
+
+		return base;
+	}
+
 	#parseIf(): AstIfNode {
 		this.#eat("KEYWORD_IF");
 
@@ -198,7 +229,7 @@ export class Parser {
 		this.#eat("KEYWORD_FOR");
 		const variable = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
 		this.#eat("KEYWORD_IN");
-		const collection = this.#parseExpressionFactor();
+		let collection = this.#parseExpression();
 		this.#eat("CONTROL_END");
 
 		const body: AstStatementNode[] = [];
@@ -240,35 +271,10 @@ export class Parser {
 
 	#parseTemplate(): AstTemplateNode {
 		this.#eat("TEMPLATE_START");
-		let baseExpression = this.#parseBinaryExpression(this.#parseExpressionFactor(), 0);
-
-		while (this.#current().kind === "PIPE") {
-			this.#eat("PIPE");
-
-			const filterName = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
-			const filterNode = new AstFilterNode(filterName, []);
-
-			if (this.#current().kind === "L_PAREN") {
-				this.#eat("L_PAREN");
-
-				while (this.#current().kind !== "R_PAREN") {
-					const arg = this.#parseExpressionFactor();
-					filterNode.args.push(arg);
-
-					if (this.#current().kind === "COMMA") {
-						this.#eat("COMMA");
-					}
-				}
-
-				this.#eat("R_PAREN");
-			}
-
-			filterNode.args.unshift(baseExpression);
-			baseExpression = filterNode;
-		}
-
+		let expression = this.#parseExpression();
 		this.#eat("TEMPLATE_END");
-		return new AstTemplateNode(baseExpression);
+
+		return new AstTemplateNode(expression);
 	}
 
 	#parseNode(): AstStatementNode | null {
