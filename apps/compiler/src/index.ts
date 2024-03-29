@@ -3,7 +3,7 @@ import { Context } from "./context";
 import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 
-const tokenizer = new Tokenizer('{= company.name |> join(", ") =}').tokenize();
+const tokenizer = new Tokenizer("{= company.founders.cto |> uppercase =}").tokenize();
 const parser = new Parser(tokenizer.tokens).parse();
 const context = Context.fromObj({
 	company: {

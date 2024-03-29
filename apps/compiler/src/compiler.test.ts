@@ -10,6 +10,7 @@ import {
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstLiteralStringNode,
+	AstMemberAccessNode,
 	AstRawTextNode,
 	AstRootNode,
 	AstTemplateNode,
@@ -293,4 +294,50 @@ test("Compiler outputs nested for loop", () => {
 	const output = compiler.compile();
 
 	assert.equal(output, "111213212223313233");
+});
+
+test("Compiler outputs member access", () => {
+	const context = Context.fromObj({
+		company: {
+			name: "Mutiny",
+		},
+	});
+	const compiler = new Compiler(
+		new AstRootNode([
+			new AstTemplateNode(
+				new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [new AstLiteralStringNode("name")])
+			),
+		]),
+		context
+	);
+
+	const output = compiler.compile();
+
+	assert.equal(output, "Mutiny");
+});
+
+test("Compiler outputs nested member access", () => {
+	const context = Context.fromObj({
+		company: {
+			name: "Mutiny",
+			founders: {
+				cto: "Cameron",
+			},
+		},
+	});
+	const compiler = new Compiler(
+		new AstRootNode([
+			new AstTemplateNode(
+				new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [
+					new AstLiteralStringNode("founders"),
+					new AstLiteralStringNode("cto"),
+				])
+			),
+		]),
+		context
+	);
+
+	const output = compiler.compile();
+
+	assert.equal(output, "Cameron");
 });

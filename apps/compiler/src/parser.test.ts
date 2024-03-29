@@ -368,7 +368,7 @@ test("Parser handles a single level member access", () => {
 	assert.deepEqual(
 		parser.rootNode.statements[0],
 		new AstTemplateNode(
-			new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [new AstLiteralIdentifierNode("name")])
+			new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [new AstLiteralStringNode("name")])
 		)
 	);
 });
@@ -390,8 +390,8 @@ test("Parser handles a nested member access", () => {
 		parser.rootNode.statements[0],
 		new AstTemplateNode(
 			new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [
-				new AstLiteralIdentifierNode("founders"),
-				new AstLiteralIdentifierNode("cto"),
+				new AstLiteralStringNode("founders"),
+				new AstLiteralStringNode("cto"),
 			])
 		)
 	);

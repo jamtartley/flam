@@ -139,10 +139,10 @@ export class AstLiteralIdentifierNode extends AstExpressionNode {
 }
 
 export class AstMemberAccessNode extends AstExpressionNode {
-	public readonly object: AstExpressionNode;
-	public readonly properties: AstLiteralIdentifierNode[];
+	public readonly object: AstLiteralIdentifierNode;
+	public readonly properties: AstLiteralStringNode[];
 
-	constructor(object: AstExpressionNode, properties: AstLiteralIdentifierNode[]) {
+	constructor(object: AstLiteralIdentifierNode, properties: AstLiteralStringNode[]) {
 		super("AstMemberAccessNode");
 		this.object = object;
 		this.properties = properties;
