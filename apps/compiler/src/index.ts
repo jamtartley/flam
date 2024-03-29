@@ -15,7 +15,7 @@ You made a bad choice!
 `).tokenize();
 
 const parser = new Parser(tokenizer.tokens).parse();
-const context = Context.fromObj({
+const context = Context.from({
 	company: {
 		employees: [
 			{ name: "Cameron", title: "cto", reports: [{ name: "Yo-yo" }, { name: "Tom" }] },

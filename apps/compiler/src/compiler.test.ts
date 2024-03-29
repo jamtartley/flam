@@ -128,7 +128,7 @@ test("Compiler outputs value of string filter application", () => {
 });
 
 test("Compiler outputs success clause in if statement", () => {
-	const context = new Context({ variables: new Map([["x", { kind: ValueKind.STRING, value: "Hello, world!" }]]) });
+	const context = Context.from({ x: "Hello, world!" });
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstIfNode(
@@ -150,7 +150,7 @@ test("Compiler outputs success clause in if statement", () => {
 });
 
 test("Compiler outputs multiple success clauses in if statement", () => {
-	const context = new Context({ variables: new Map([["x", { kind: ValueKind.STRING, value: "Hello, world!" }]]) });
+	const context = Context.from({ x: "Hello, world!" });
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstIfNode(
@@ -172,9 +172,7 @@ test("Compiler outputs multiple success clauses in if statement", () => {
 });
 
 test("Compiler outputs failure clause in if statement", () => {
-	const context = new Context({
-		variables: new Map([["x", { kind: ValueKind.STRING, value: "Hello, world!" }]]),
-	});
+	const context = Context.from({ x: "Hello, world!" });
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstIfNode(
@@ -196,12 +194,7 @@ test("Compiler outputs failure clause in if statement", () => {
 });
 
 test("Compiler outputs nested clauses in if statement", () => {
-	const context = new Context({
-		variables: new Map([
-			["x", { kind: ValueKind.STRING, value: "Hello, world!" }],
-			["y", { kind: ValueKind.NUMBER, value: 2 }],
-		]),
-	});
+	const context = Context.from({ x: "Hello, world!", y: 2 });
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstIfNode(
@@ -234,21 +227,7 @@ test("Compiler outputs nested clauses in if statement", () => {
 });
 
 test("Compiler outputs for loop", () => {
-	const context = new Context({
-		variables: new Map([
-			[
-				"y",
-				{
-					kind: ValueKind.ARRAY,
-					value: [
-						{ kind: ValueKind.NUMBER, value: 1 },
-						{ kind: ValueKind.NUMBER, value: 2 },
-						{ kind: ValueKind.NUMBER, value: 3 },
-					],
-				},
-			],
-		]),
-	});
+	const context = Context.from({ y: [1, 2, 3] });
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstForNode(new AstLiteralIdentifierNode("x"), new AstLiteralIdentifierNode("y"), [
@@ -264,7 +243,7 @@ test("Compiler outputs for loop", () => {
 });
 
 test("Compiler outputs for loop when collection is nested member", () => {
-	const context = Context.fromObj({
+	const context = Context.from({
 		company: {
 			name: "Mutiny",
 			employees: [
@@ -294,7 +273,7 @@ test("Compiler outputs for loop when collection is nested member", () => {
 });
 
 test("Compiler outputs for loop when collection is a filter expression", () => {
-	const context = Context.fromObj({
+	const context = Context.from({
 		company: {
 			employees: [
 				{ name: "Cameron", title: "cto", reports: [{ name: "Yo-yo" }, { name: "Tom" }] },
@@ -363,21 +342,7 @@ test("Compiler assigns variable when encountering a make node with complex expre
 });
 
 test("Compiler outputs nested for loop", () => {
-	const context = new Context({
-		variables: new Map([
-			[
-				"z",
-				{
-					kind: ValueKind.ARRAY,
-					value: [
-						{ kind: ValueKind.NUMBER, value: 1 },
-						{ kind: ValueKind.NUMBER, value: 2 },
-						{ kind: ValueKind.NUMBER, value: 3 },
-					],
-				},
-			],
-		]),
-	});
+	const context = Context.from({ z: [1, 2, 3] });
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstForNode(new AstLiteralIdentifierNode("x"), new AstLiteralIdentifierNode("z"), [
@@ -409,7 +374,7 @@ test("Compiler outputs nested for loop", () => {
 });
 
 test("Compiler outputs member access", () => {
-	const context = Context.fromObj({
+	const context = Context.from({
 		company: {
 			name: "Mutiny",
 		},
@@ -429,7 +394,7 @@ test("Compiler outputs member access", () => {
 });
 
 test("Compiler outputs nested member access", () => {
-	const context = Context.fromObj({
+	const context = Context.from({
 		company: {
 			name: "Mutiny",
 			founders: {

@@ -46,7 +46,7 @@ export class Context {
 		}
 	}
 
-	static fromObj(obj: object): Context {
+	static from(obj: object): Context {
 		const variables = new Map(Object.entries(obj).map(([name, value]) => [name, convertToRuntimeValue(value)]));
 		const context = new Context({
 			variables,

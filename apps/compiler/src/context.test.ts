@@ -3,38 +3,38 @@ import { test } from "node:test";
 import { Context } from "./context";
 import { ValueKind } from "./compiler";
 
-test("Context.fromObj converts a simple string", () => {
+test("Context.from converts a simple string", () => {
 	const input = {
 		name: "Cameron",
 	};
-	const context = Context.fromObj(input);
+	const context = Context.from(input);
 
 	assert.deepEqual(context.variables.get("name"), { kind: ValueKind.STRING, value: "Cameron" });
 });
 
-test("Context.fromObj converts a simple number", () => {
+test("Context.from converts a simple number", () => {
 	const input = {
 		age: 42,
 	};
-	const context = Context.fromObj(input);
+	const context = Context.from(input);
 
 	assert.deepEqual(context.variables.get("age"), { kind: ValueKind.NUMBER, value: 42 });
 });
 
-test("Context.fromObj converts a simple boolean", () => {
+test("Context.from converts a simple boolean", () => {
 	const input = {
 		isCorrect: false,
 	};
-	const context = Context.fromObj(input);
+	const context = Context.from(input);
 
 	assert.deepEqual(context.variables.get("isCorrect"), { kind: ValueKind.BOOLEAN, value: false });
 });
 
-test("Context.fromObj converts an array of strings", () => {
+test("Context.from converts an array of strings", () => {
 	const input = {
 		names: ["Cameron", "Donna", "Gordon"],
 	};
-	const context = Context.fromObj(input);
+	const context = Context.from(input);
 
 	assert.deepEqual(context.variables.get("names"), {
 		kind: ValueKind.ARRAY,
@@ -49,14 +49,14 @@ test("Context.fromObj converts an array of strings", () => {
 	});
 });
 
-test("Context.fromObj converts a nested array of items", () => {
+test("Context.from converts a nested array of items", () => {
 	const input = {
 		ageGroups: [
 			[0, 10],
 			[11, 20],
 		],
 	};
-	const context = Context.fromObj(input);
+	const context = Context.from(input);
 
 	assert.deepEqual(context.variables.get("ageGroups"), {
 		kind: ValueKind.ARRAY,
@@ -79,14 +79,14 @@ test("Context.fromObj converts a nested array of items", () => {
 	});
 });
 
-test("Context.fromObj converts a flat object", () => {
+test("Context.from converts a flat object", () => {
 	const input = {
 		company: {
 			name: "Mutiny",
 			established: 1983,
 		},
 	};
-	const context = Context.fromObj(input);
+	const context = Context.from(input);
 
 	assert.deepEqual(context.variables.get("company"), {
 		kind: ValueKind.OBJECT,
@@ -97,7 +97,7 @@ test("Context.fromObj converts a flat object", () => {
 	});
 });
 
-test("Context.fromObj converts an object with nested array", () => {
+test("Context.from converts an object with nested array", () => {
 	const input = {
 		company: {
 			name: "Mutiny",
@@ -105,7 +105,7 @@ test("Context.fromObj converts an object with nested array", () => {
 			founders: ["Cameron", "Donna"],
 		},
 	};
-	const context = Context.fromObj(input);
+	const context = Context.from(input);
 
 	assert.deepEqual(context.variables.get("company"), {
 		kind: ValueKind.OBJECT,
@@ -123,7 +123,7 @@ test("Context.fromObj converts an object with nested array", () => {
 	});
 });
 
-test("Context.fromObj converts an object with nested objects", () => {
+test("Context.from converts an object with nested objects", () => {
 	const input = {
 		company: {
 			name: "Mutiny",
@@ -138,7 +138,7 @@ test("Context.fromObj converts an object with nested objects", () => {
 			],
 		},
 	};
-	const context = Context.fromObj(input);
+	const context = Context.from(input);
 
 	assert.deepEqual(context.variables.get("company"), {
 		kind: ValueKind.OBJECT,
@@ -176,18 +176,14 @@ test("Context.fromObj converts an object with nested objects", () => {
 });
 
 test("findContextForVariable finds a variable in the current context", () => {
-	const context = new Context({
-		variables: new Map([["name", { kind: ValueKind.STRING, value: "Cameron" }]]),
-	});
+	const context = Context.from({ name: "Cameron" });
 	const found = context.findContextForVariable("name");
 
 	assert.strictEqual(found, context);
 });
 
 test("findContextForVariable finds a variable in the parent context", () => {
-	const parent = new Context({
-		variables: new Map([["name", { kind: ValueKind.STRING, value: "Cameron" }]]),
-	});
+	const parent = Context.from({ name: "Cameron" });
 	const child = new Context({ parent });
 	const found = child.findContextForVariable("name");
 
@@ -195,9 +191,7 @@ test("findContextForVariable finds a variable in the parent context", () => {
 });
 
 test("get finds a variable in the parent context", () => {
-	const parent = new Context({
-		variables: new Map([["name", { kind: ValueKind.STRING, value: "Cameron" }]]),
-	});
+	const parent = Context.from({ name: "Cameron" });
 	const child = new Context({ parent });
 	const found = child.get("name");
 
