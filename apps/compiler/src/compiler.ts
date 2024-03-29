@@ -14,64 +14,58 @@ import {
 import { applyFilter, filters } from "./filters";
 import { Context } from "./context";
 
-type ValueKind = "number" | "string" | "boolean" | "array" | "filter" | "statements" | "operator";
+export enum ValueKind {
+	NUMBER,
+	STRING,
+	BOOLEAN,
+	ARRAY,
+	FILTER,
+}
 
-export type RuntimeValue<T> = {
+export interface RuntimeValue {
 	kind: ValueKind;
-	value: T;
-};
+	value: unknown;
+}
 
-export type UnresolvedValue = RuntimeValue<unknown>;
-
-export type StringValue = RuntimeValue<string> & {
-	kind: "string";
+export interface StringValue extends RuntimeValue {
+	kind: ValueKind.STRING;
 	value: string;
-};
+}
 
-export type NumberValue = RuntimeValue<number> & {
-	kind: "number";
+export interface NumberValue extends RuntimeValue {
+	kind: ValueKind.NUMBER;
 	value: number;
-};
+}
 
-export type BooleanValue = RuntimeValue<boolean> & {
-	kind: "boolean";
+export interface BooleanValue extends RuntimeValue {
+	kind: ValueKind.BOOLEAN;
 	value: boolean;
-};
-
-export type ArrayValue = RuntimeValue<Array<UnresolvedValue>>;
-
-export type StatementsValue = RuntimeValue<UnresolvedValue[]> & {
-	kind: "statements";
-};
-
-export type FilterValue = RuntimeValue<Function> & {
-	kind: "filter";
-};
-
-export type IdentifierValue = FilterValue | StringValue | NumberValue;
-
-export type OperatorValue = RuntimeValue<string> & {
-	kind: "operator";
-};
-
-function isNumberValue(value: UnresolvedValue): value is NumberValue {
-	return value.kind === "number";
 }
 
-function isStringValue(value: UnresolvedValue): value is StringValue {
-	return value.kind === "string";
+export interface ArrayValue extends RuntimeValue {
+	kind: ValueKind.ARRAY;
+	value: RuntimeValue[];
 }
 
-function isArrayValue(value: UnresolvedValue): value is ArrayValue {
-	return value.kind === "array";
+export interface FilterValue extends RuntimeValue {
+	kind: ValueKind.FILTER;
+	value: Function;
 }
 
-function isFilterValue(value: UnresolvedValue): value is FilterValue {
-	return value.kind === "filter";
+function isNumberValue(value: RuntimeValue): value is NumberValue {
+	return value.kind === ValueKind.NUMBER;
 }
 
-function isStatementsValue(value: UnresolvedValue): value is StatementsValue {
-	return value.kind === "statements";
+function isStringValue(value: RuntimeValue): value is StringValue {
+	return value.kind === ValueKind.STRING;
+}
+
+function isArrayValue(value: RuntimeValue): value is ArrayValue {
+	return value.kind === ValueKind.ARRAY;
+}
+
+function isFilterValue(value: RuntimeValue): value is FilterValue {
+	return value.kind === ValueKind.FILTER;
 }
 
 export class Compiler {
@@ -83,27 +77,27 @@ export class Compiler {
 		this.#context = context;
 	}
 
-	#applyFilter(filter: FilterValue, left: UnresolvedValue): UnresolvedValue {
+	#applyFilter(filter: FilterValue, left: RuntimeValue): RuntimeValue {
 		const applied = applyFilter(filter.value.name, left.value);
 
 		if (typeof applied === "number") {
-			return { kind: "number", value: applied };
+			return { kind: ValueKind.NUMBER, value: applied };
 		} else if (typeof applied === "string") {
-			return { kind: "string", value: applied };
+			return { kind: ValueKind.STRING, value: applied };
 		}
 
 		throw new Error(`Unexpected filter output: ${applied}`);
 	}
 
 	#evaluateRootNode(root: AstRootNode): StringValue {
-		const evaluate = (value: UnresolvedValue) => {
+		const evaluate = (value: RuntimeValue) => {
 			let output = "";
 
 			if (isStringValue(value)) {
 				output += value.value;
 			} else if (isNumberValue(value)) {
 				output += value.value;
-			} else if (isStatementsValue(value)) {
+			} else if (isArrayValue(value)) {
 				for (const statement of value.value) {
 					const x = evaluate(statement);
 					output += x;
@@ -115,18 +109,18 @@ export class Compiler {
 
 		const values = root.statements.map((node) => this.#evaluate(node));
 
-		return { kind: "string", value: values.map(evaluate).join("") };
+		return { kind: ValueKind.STRING, value: values.map(evaluate).join("") };
 	}
 
 	#evaluateRawTextNode(rawText: AstRawTextNode): StringValue {
-		return { kind: "string", value: rawText.value };
+		return { kind: ValueKind.STRING, value: rawText.value };
 	}
 
-	#evaluateTemplateNode(template: AstTemplateNode): UnresolvedValue {
+	#evaluateTemplateNode(template: AstTemplateNode): RuntimeValue {
 		return this.#evaluate(template.expression);
 	}
 
-	#evaluateBinaryExpressionNode(binaryExpression: AstBinaryExpressionNode): UnresolvedValue {
+	#evaluateBinaryExpressionNode(binaryExpression: AstBinaryExpressionNode): RuntimeValue {
 		const left = this.#evaluate(binaryExpression.left);
 		const right = this.#evaluate(binaryExpression.right);
 		const operator = this.#evaluate(binaryExpression.operator);
@@ -144,89 +138,89 @@ export class Compiler {
 					throw new Error(`Expected numbers, got ${left.kind}, ${right.kind}`);
 				}
 
-				return { kind: "number", value: left.value + right.value };
+				return { kind: ValueKind.NUMBER, value: left.value + right.value };
 			}
 			case "OP_MINUS": {
 				if (!isNumberValue(left) || !isNumberValue(right)) {
 					throw new Error(`Expected numbers, got ${left.kind}, ${right.kind}`);
 				}
 
-				return { kind: "number", value: left.value - right.value };
+				return { kind: ValueKind.NUMBER, value: left.value - right.value };
 			}
 			case "OP_DIVIDE": {
 				if (!isNumberValue(left) || !isNumberValue(right)) {
 					throw new Error(`Expected numbers, got ${left.kind}, ${right.kind}`);
 				}
 
-				return { kind: "number", value: left.value / right.value };
+				return { kind: ValueKind.NUMBER, value: left.value / right.value };
 			}
 			case "OP_MULTIPLY": {
 				if (!isNumberValue(left) || !isNumberValue(right)) {
 					throw new Error(`Expected numbers, got ${left.kind}, ${right.kind}`);
 				}
 
-				return { kind: "number", value: left.value * right.value };
+				return { kind: ValueKind.NUMBER, value: left.value * right.value };
 			}
 			case "OP_GT": {
 				if (!isNumberValue(left) || !isNumberValue(right)) {
 					throw new Error(`Expected numbers, got ${left.kind}, ${right.kind}`);
 				}
 
-				return { kind: "boolean", value: left.value > right.value };
+				return { kind: ValueKind.BOOLEAN, value: left.value > right.value };
 			}
 			case "OP_LT": {
 				if (!isNumberValue(left) || !isNumberValue(right)) {
 					throw new Error(`Expected numbers, got ${left.kind}, ${right.kind}`);
 				}
 
-				return { kind: "boolean", value: left.value < right.value };
+				return { kind: ValueKind.BOOLEAN, value: left.value < right.value };
 			}
 			case "OP_GTE": {
 				if (!isNumberValue(left) || !isNumberValue(right)) {
 					throw new Error(`Expected numbers, got ${left.kind}, ${right.kind}`);
 				}
 
-				return { kind: "boolean", value: left.value >= right.value };
+				return { kind: ValueKind.BOOLEAN, value: left.value >= right.value };
 			}
 			case "OP_LTE": {
 				if (!isNumberValue(left) || !isNumberValue(right)) {
 					throw new Error(`Expected numbers, got ${left.kind}, ${right.kind}`);
 				}
 
-				return { kind: "boolean", value: left.value <= right.value };
+				return { kind: ValueKind.BOOLEAN, value: left.value <= right.value };
 			}
 			case "OP_EQ": {
-				return { kind: "boolean", value: left.value === right.value };
+				return { kind: ValueKind.BOOLEAN, value: left.value === right.value };
 			}
 			case "OP_NE": {
-				return { kind: "boolean", value: left.value !== right.value };
+				return { kind: ValueKind.BOOLEAN, value: left.value !== right.value };
 			}
 		}
 
 		throw new Error(`Unexpected values: ${left}, ${right}`);
 	}
 
-	#evaluateIfNode(ifNode: AstIfNode): StatementsValue {
+	#evaluateIfNode(ifNode: AstIfNode): ArrayValue {
 		const condition = this.#evaluate(ifNode.condition);
 
-		if (condition.kind !== "boolean") {
+		if (condition.kind !== ValueKind.BOOLEAN) {
 			throw new Error(`Expected boolean, got ${condition.kind}`);
 		}
 
 		if (condition.value) {
 			return {
-				kind: "statements",
+				kind: ValueKind.ARRAY,
 				value: ifNode.success.map((node) => this.#evaluate(node)),
 			};
 		} else {
 			return {
-				kind: "statements",
+				kind: ValueKind.ARRAY,
 				value: ifNode.failure.map((node) => this.#evaluate(node)),
 			};
 		}
 	}
 
-	#evaluateForNode(forNode: AstForNode): StatementsValue {
+	#evaluateForNode(forNode: AstForNode): ArrayValue {
 		const collection = this.#evaluateLiteralIdentifierNode(forNode.collection);
 
 		if (!isArrayValue(collection)) {
@@ -246,35 +240,35 @@ export class Compiler {
 		}
 
 		return {
-			kind: "statements",
+			kind: ValueKind.ARRAY,
 			value: items,
 		};
 	}
 
-	#evaluateBinaryOperatorNode(binaryOperator: AstBinaryOperatorNode): OperatorValue {
-		return { kind: "operator", value: binaryOperator.operator };
+	#evaluateBinaryOperatorNode(binaryOperator: AstBinaryOperatorNode): StringValue {
+		return { kind: ValueKind.STRING, value: binaryOperator.operator };
 	}
 
 	#evaluateLiteralStringNode(literalString: AstLiteralStringNode): StringValue {
-		return { kind: "string", value: literalString.value };
+		return { kind: ValueKind.STRING, value: literalString.value };
 	}
 
 	#evaluateLiteralNumberNode(literalNumber: AstLiteralNumberNode): NumberValue {
-		return { kind: "number", value: literalNumber.value };
+		return { kind: ValueKind.NUMBER, value: literalNumber.value };
 	}
 
-	#evaluateLiteralIdentifierNode(identifier: AstLiteralIdentifierNode): UnresolvedValue {
+	#evaluateLiteralIdentifierNode(identifier: AstLiteralIdentifierNode): RuntimeValue {
 		if (filters.has(identifier.name)) {
 			const builtin = filters.get(identifier.name)!;
 
-			return { kind: "filter", value: builtin.func };
+			return { kind: ValueKind.FILTER, value: builtin.func };
 		}
 
 		const variable = this.#context.get(identifier.name);
 		return variable;
 	}
 
-	#evaluate(node: AstNode): UnresolvedValue {
+	#evaluate(node: AstNode): RuntimeValue {
 		switch (node.kind) {
 			case "AstRawTextNode":
 				return this.#evaluateRawTextNode(node as AstRawTextNode);

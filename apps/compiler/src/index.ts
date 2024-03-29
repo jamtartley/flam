@@ -1,4 +1,4 @@
-import { ArrayValue, Compiler, NumberValue } from "./compiler";
+import { ArrayValue, Compiler, NumberValue, ValueKind } from "./compiler";
 import { Context } from "./context";
 import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
@@ -11,11 +11,11 @@ number: {=number=}
 const parser = new Parser(tokenizer.tokens).parse();
 const context = new Context();
 context.add("numbers", {
-	kind: "array",
+	kind: ValueKind.ARRAY,
 	value: [
-		{ kind: "number", value: 1 } as NumberValue,
-		{ kind: "number", value: 2 } as NumberValue,
-		{ kind: "number", value: 3 } as NumberValue,
+		{ kind: ValueKind.NUMBER, value: 1 } as NumberValue,
+		{ kind: ValueKind.NUMBER, value: 2 } as NumberValue,
+		{ kind: ValueKind.NUMBER, value: 3 } as NumberValue,
 	],
 } as ArrayValue);
 const compiler = new Compiler(parser.rootNode, context);

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { Compiler } from "./compiler";
+import { Compiler, ValueKind } from "./compiler";
 import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,
@@ -135,7 +135,7 @@ test("Compiler outputs value of string filter application", () => {
 });
 
 test("Compiler outputs success clause in if statement", () => {
-	const context = new Context({ variables: new Map([["x", { kind: "string", value: "Hello, world!" }]]) });
+	const context = new Context({ variables: new Map([["x", { kind: ValueKind.STRING, value: "Hello, world!" }]]) });
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstIfNode(
@@ -157,7 +157,7 @@ test("Compiler outputs success clause in if statement", () => {
 });
 
 test("Compiler outputs multiple success clauses in if statement", () => {
-	const context = new Context({ variables: new Map([["x", { kind: "string", value: "Hello, world!" }]]) });
+	const context = new Context({ variables: new Map([["x", { kind: ValueKind.STRING, value: "Hello, world!" }]]) });
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstIfNode(
@@ -180,7 +180,7 @@ test("Compiler outputs multiple success clauses in if statement", () => {
 
 test("Compiler outputs failure clause in if statement", () => {
 	const context = new Context({
-		variables: new Map([["x", { kind: "string", value: "Hello, world!" }]]),
+		variables: new Map([["x", { kind: ValueKind.STRING, value: "Hello, world!" }]]),
 	});
 	const compiler = new Compiler(
 		new AstRootNode([
@@ -205,8 +205,8 @@ test("Compiler outputs failure clause in if statement", () => {
 test("Compiler outputs nested clauses in if statement", () => {
 	const context = new Context({
 		variables: new Map([
-			["x", { kind: "string", value: "Hello, world!" }],
-			["y", { kind: "number", value: 2 }],
+			["x", { kind: ValueKind.STRING, value: "Hello, world!" }],
+			["y", { kind: ValueKind.NUMBER, value: 2 }],
 		]),
 	});
 	const compiler = new Compiler(
@@ -246,11 +246,11 @@ test("Compiler outputs for loop", () => {
 			[
 				"y",
 				{
-					kind: "array",
+					kind: ValueKind.ARRAY,
 					value: [
-						{ kind: "number", value: 1 },
-						{ kind: "number", value: 2 },
-						{ kind: "number", value: 3 },
+						{ kind: ValueKind.NUMBER, value: 1 },
+						{ kind: ValueKind.NUMBER, value: 2 },
+						{ kind: ValueKind.NUMBER, value: 3 },
 					],
 				},
 			],
@@ -276,11 +276,11 @@ test("Compiler outputs nested for loop", () => {
 			[
 				"z",
 				{
-					kind: "array",
+					kind: ValueKind.ARRAY,
 					value: [
-						{ kind: "number", value: 1 },
-						{ kind: "number", value: 2 },
-						{ kind: "number", value: 3 },
+						{ kind: ValueKind.NUMBER, value: 1 },
+						{ kind: ValueKind.NUMBER, value: 2 },
+						{ kind: ValueKind.NUMBER, value: 3 },
 					],
 				},
 			],
