@@ -1,9 +1,9 @@
 stages:
   - preflight
+  - publish
 
-.quality: &quality
+.common: &common
   image: node:20-alpine
-  stage: preflight
   cache:
     key:
       files:
@@ -15,6 +15,10 @@ stages:
     - npm install -g turbo@1.13.0 pnpm@8.15.2
     - pnpm config set store-dir .pnpm-store
     - pnpm install
+
+.quality: &quality
+  <<: *common
+  stage: preflight
 
 format:
   <<: *quality
@@ -45,3 +49,12 @@ build:
   <<: *quality
   script:
     - pnpm ci:build
+
+publish:
+  <<: *common
+  stage: publish
+  script:
+    - echo "@flam:registry=https://${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" > .npmrc
+    - echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc
+    - pnpm ci:build
+    - pnpm ci:publish
