@@ -5,12 +5,15 @@ import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 import path from "node:path";
 
-export function compile(path: PathLike, ctx: Record<string, unknown>): string {
-	const file = readFileSync(path).toString();
-	const tokenizer = new Tokenizer(file, path).tokenize();
+export function compile(filePath: PathLike, ctx: Record<string, unknown>): string {
+	const absPath = path.resolve(filePath.toString());
+	const file = readFileSync(absPath).toString();
+	const tokenizer = new Tokenizer(file, absPath).tokenize();
 	const parser = new Parser(tokenizer.tokens).parse();
 	const scope = Scope.from(ctx);
-	const compiler = new Compiler(parser.rootNode, scope);
+	const compiler = new Compiler(parser.rootNode, scope, absPath);
 
 	return compiler.compile();
 }
+
+console.log(compile(path.join("examples", "include.flam"), {}));

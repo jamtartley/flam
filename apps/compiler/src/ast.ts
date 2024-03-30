@@ -117,9 +117,9 @@ export class AstMakeNode extends AstStatementNode {
 }
 
 export class AstIncludeNode extends AstStatementNode {
-	public readonly name: AstLiteralIdentifierNode;
+	public readonly name: AstLiteralStringNode;
 
-	constructor(name: AstLiteralIdentifierNode) {
+	constructor(name: AstLiteralStringNode) {
 		super("AstIncludeNode");
 
 		this.name = name;

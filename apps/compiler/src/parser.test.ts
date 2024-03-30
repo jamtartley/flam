@@ -333,13 +333,13 @@ test("Parser handle an include statement", () => {
 	const tokens: Token[] = [
 		new Token({ kind: "CONTROL_START" }),
 		new Token({ kind: "KEYWORD_INCLUDE" }),
-		new Token({ kind: "LITERAL_IDENTIFIER", value: "child" }),
+		new Token({ kind: "LITERAL_STRING", value: "child" }),
 		new Token({ kind: "CONTROL_END" }),
 		new Token({ kind: "EOF" }),
 	];
 	const parser = new Parser(tokens).parse();
 
-	assert.deepEqual(parser.rootNode.statements[0], new AstIncludeNode(new AstLiteralIdentifierNode("child")));
+	assert.deepEqual(parser.rootNode.statements[0], new AstIncludeNode(new AstLiteralStringNode("child")));
 });
 
 test("Parser handles a filter outside of a pipe chain", () => {

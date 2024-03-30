@@ -20,7 +20,7 @@ import { Scope } from "./scope";
 
 test("Compiler outputs simple literal number", () => {
 	const scope = new Scope();
-	const compiler = new Compiler(new AstRootNode([new AstTemplateNode(new AstLiteralNumberNode(42))]), scope);
+	const compiler = new Compiler(new AstRootNode([new AstTemplateNode(new AstLiteralNumberNode(42))]), scope, "");
 
 	const output = compiler.compile();
 
@@ -39,7 +39,8 @@ test("Compiler outputs value of 42 + 21", () => {
 				)
 			),
 		]),
-		scope
+		scope,
+		""
 	);
 
 	const output = compiler.compile();
@@ -62,7 +63,7 @@ test("Compiler outputs value of 42 * (21 + 7)", () => {
 			)
 		),
 	]);
-	const compiler = new Compiler(rootNode, scope);
+	const compiler = new Compiler(rootNode, scope, "");
 
 	const output = compiler.compile();
 
@@ -89,7 +90,8 @@ test("Compiler outputs value of 42 + (10 / (4 - 1))", () => {
 				)
 			),
 		]),
-		scope
+		scope,
+		""
 	);
 
 	const output = compiler.compile();
@@ -103,7 +105,8 @@ test("Compiler outputs value of number filter application", () => {
 		new AstRootNode([
 			new AstTemplateNode(new AstFilterNode(new AstLiteralIdentifierNode("double"), [new AstLiteralNumberNode(21)])),
 		]),
-		scope
+		scope,
+		""
 	);
 
 	const output = compiler.compile();
@@ -119,7 +122,8 @@ test("Compiler outputs value of string filter application", () => {
 				new AstFilterNode(new AstLiteralIdentifierNode("to_upper"), [new AstLiteralStringNode("hello, world!")])
 			),
 		]),
-		scope
+		scope,
+		""
 	);
 
 	const output = compiler.compile();
@@ -141,7 +145,8 @@ test("Compiler outputs success clause in if statement", () => {
 				[]
 			),
 		]),
-		scope
+		scope,
+		""
 	);
 
 	const output = compiler.compile();
@@ -163,7 +168,8 @@ test("Compiler outputs multiple success clauses in if statement", () => {
 				[]
 			),
 		]),
-		scope
+		scope,
+		""
 	);
 
 	const output = compiler.compile();
@@ -185,7 +191,8 @@ test("Compiler outputs failure clause in if statement", () => {
 				[new AstRawTextNode("In failure clause!")]
 			),
 		]),
-		scope
+		scope,
+		""
 	);
 
 	const output = compiler.compile();
@@ -218,7 +225,8 @@ test("Compiler outputs nested clauses in if statement", () => {
 				[]
 			),
 		]),
-		scope
+		scope,
+		""
 	);
 
 	const output = compiler.compile();
@@ -234,7 +242,8 @@ test("Compiler outputs for loop", () => {
 				new AstTemplateNode(new AstLiteralIdentifierNode("x")),
 			]),
 		]),
-		scope
+		scope,
+		""
 	);
 
 	const output = compiler.compile();
@@ -264,7 +273,8 @@ test("Compiler outputs for loop when collection is nested member", () => {
 				]
 			),
 		]),
-		scope
+		scope,
+		""
 	);
 
 	const output = compiler.compile();
@@ -295,7 +305,8 @@ test("Compiler outputs for loop when collection is a filter expression", () => {
 				[new AstTemplateNode(new AstLiteralIdentifierNode("name"))]
 			),
 		]),
-		scope
+		scope,
+		""
 	);
 
 	const output = compiler.compile();
@@ -310,7 +321,8 @@ test("Compiler assigns variable when encountering a make node", () => {
 			new AstMakeNode(new AstLiteralIdentifierNode("x"), new AstLiteralNumberNode(42)),
 			new AstTemplateNode(new AstLiteralIdentifierNode("x")),
 		]),
-		scope
+		scope,
+		""
 	);
 
 	const output = compiler.compile();
@@ -333,7 +345,8 @@ test("Compiler assigns variable when encountering a make node with complex expre
 			),
 			new AstTemplateNode(new AstLiteralIdentifierNode("x")),
 		]),
-		scope
+		scope,
+		""
 	);
 
 	const output = compiler.compile();
@@ -353,7 +366,8 @@ test("Compiler outputs nested for loop", () => {
 				]),
 			]),
 		]),
-		scope
+		scope,
+		""
 	);
 
 	const output = compiler.compile();
@@ -385,7 +399,8 @@ test("Compiler outputs member access", () => {
 				new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [new AstLiteralStringNode("name")])
 			),
 		]),
-		scope
+		scope,
+		""
 	);
 
 	const output = compiler.compile();
@@ -411,7 +426,8 @@ test("Compiler outputs nested member access", () => {
 				])
 			),
 		]),
-		scope
+		scope,
+		""
 	);
 
 	const output = compiler.compile();

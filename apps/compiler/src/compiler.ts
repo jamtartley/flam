@@ -1,9 +1,12 @@
+import path from "node:path";
+import fs from "node:fs";
 import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,
 	AstFilterNode,
 	AstForNode,
 	AstIfNode,
+	AstIncludeNode,
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstLiteralStringNode,
@@ -15,7 +18,9 @@ import {
 	AstTemplateNode,
 } from "./ast";
 import { applyFilter, filters } from "./filters";
+import { Parser } from "./parser";
 import { Scope } from "./scope";
+import { Tokenizer } from "./tokenizer";
 
 export enum ValueKind {
 	NUMBER,
@@ -85,17 +90,15 @@ function isObjectValue(value: RuntimeValue): value is ObjectValue {
 	return value.kind === ValueKind.OBJECT;
 }
 
-function isNullValue(value: RuntimeValue): value is NullValue {
-	return value.kind === ValueKind.NULL;
-}
-
 export class Compiler {
 	readonly #rootNode: AstRootNode;
 	readonly #scope: Scope;
+	readonly #filePath: string;
 
-	constructor(rootNode: AstRootNode, scope: Scope) {
+	constructor(rootNode: AstRootNode, scope: Scope, filePath: string) {
 		this.#rootNode = rootNode;
 		this.#scope = scope;
+		this.#filePath = filePath;
 	}
 
 	#evaluateRootNode(root: AstRootNode): StringValue {
@@ -157,6 +160,18 @@ export class Compiler {
 		}
 
 		return object;
+	}
+
+	#evaluateIncludeNode(includeNode: AstIncludeNode): StringValue {
+		const name = this.#evaluateLiteralStringNode(includeNode.name);
+		const filePath = path.join(path.dirname(this.#filePath), name.value);
+		const contents = fs.readFileSync(filePath).toString();
+		const tokenizer = new Tokenizer(contents, filePath).tokenize();
+		const parser = new Parser(tokenizer.tokens).parse();
+		const scope = new Scope(this.#scope);
+		const compiler = new Compiler(parser.rootNode, scope, filePath);
+
+		return { kind: ValueKind.STRING, value: compiler.compile() };
 	}
 
 	#evaluateBinaryExpressionNode(binaryExpression: AstBinaryExpressionNode): RuntimeValue {
@@ -326,6 +341,8 @@ export class Compiler {
 				return this.#evaluateFilterNode(node as AstFilterNode);
 			case "AstMemberAccessNode":
 				return this.#evaluateMemberAccessNode(node as AstMemberAccessNode);
+			case "AstIncludeNode":
+				return this.#evaluateIncludeNode(node as AstIncludeNode);
 			case "AstLiteralStringNode":
 				return this.#evaluateLiteralStringNode(node as AstLiteralStringNode);
 			case "AstLiteralNumberNode":
