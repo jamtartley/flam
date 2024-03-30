@@ -5,7 +5,31 @@ type ContextConstructor = {
 	variables?: Map<string, RuntimeValue>;
 };
 
-function convertToRuntimeValue(input: unknown): RuntimeValue {
+export class VariableTypeUnsupportedError extends Error {
+	constructor(name: string, value: unknown) {
+		super(`Variable "${name}" has unsupported type: "${typeof value}"`);
+
+		this.name = "VariableTypeUnsupportedError";
+	}
+}
+
+export class VariableNotFoundError extends Error {
+	constructor(name: string) {
+		super(`Variable "${name}" not found`);
+
+		this.name = "VariableNotFoundError";
+	}
+}
+
+export class VariableAlreadyExistsError extends Error {
+	constructor(name: string) {
+		super(`Variable "${name}" already exists`);
+
+		this.name = "VariableAlreadyExistsError";
+	}
+}
+
+function convertToRuntimeValue(name: string, input: unknown): RuntimeValue {
 	if (typeof input === "string") {
 		return { kind: ValueKind.STRING, value: input };
 	} else if (typeof input === "number") {
@@ -16,7 +40,7 @@ function convertToRuntimeValue(input: unknown): RuntimeValue {
 		const arrayValue: ArrayValue = { kind: ValueKind.ARRAY, value: [] };
 
 		for (const item of input) {
-			arrayValue.value.push(convertToRuntimeValue(item));
+			arrayValue.value.push(convertToRuntimeValue(name, item));
 		}
 
 		return arrayValue;
@@ -24,13 +48,13 @@ function convertToRuntimeValue(input: unknown): RuntimeValue {
 		const objectValue: Record<string, RuntimeValue> = {};
 
 		for (const [key, value] of Object.entries(input)) {
-			objectValue[key] = convertToRuntimeValue(value);
+			objectValue[key] = convertToRuntimeValue(name, value);
 		}
 
 		return { kind: ValueKind.OBJECT, value: objectValue };
 	}
 
-	throw new Error(`Unsupported type: ${typeof input}`);
+	throw new VariableTypeUnsupportedError(name, input);
 }
 
 export class Context {
@@ -47,7 +71,7 @@ export class Context {
 	}
 
 	static from(obj: object): Context {
-		const variables = new Map(Object.entries(obj).map(([name, value]) => [name, convertToRuntimeValue(value)]));
+		const variables = new Map(Object.entries(obj).map(([name, value]) => [name, convertToRuntimeValue(name, value)]));
 		const context = new Context({
 			variables,
 		});
@@ -57,7 +81,7 @@ export class Context {
 
 	add(name: string, value: RuntimeValue): RuntimeValue {
 		if (this.variables.has(name)) {
-			throw new Error(`Variable "${name}" already exists`);
+			throw new VariableAlreadyExistsError(name);
 		}
 
 		this.variables.set(name, value);
@@ -81,7 +105,7 @@ export class Context {
 		}
 
 		if (!this.#parent) {
-			throw new Error(`Variable "${name}" not found`);
+			throw new VariableNotFoundError(name);
 		}
 
 		return this.#parent.findContextForVariable(name);

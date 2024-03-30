@@ -175,14 +175,14 @@ test("Context.from converts an object with nested objects", () => {
 	});
 });
 
-test("findContextForVariable finds a variable in the current context", () => {
+test("Context.findContextForVariable finds a variable in the current context", () => {
 	const context = Context.from({ name: "Cameron" });
 	const found = context.findContextForVariable("name");
 
 	assert.strictEqual(found, context);
 });
 
-test("findContextForVariable finds a variable in the parent context", () => {
+test("Context.findContextForVariable finds a variable in the parent context", () => {
 	const parent = Context.from({ name: "Cameron" });
 	const child = new Context({ parent });
 	const found = child.findContextForVariable("name");
@@ -190,10 +190,35 @@ test("findContextForVariable finds a variable in the parent context", () => {
 	assert.strictEqual(found, parent);
 });
 
-test("get finds a variable in the parent context", () => {
+test("Context.get finds a variable in the parent context", () => {
 	const parent = Context.from({ name: "Cameron" });
 	const child = new Context({ parent });
 	const found = child.get("name");
 
 	assert.deepEqual(found, { kind: ValueKind.STRING, value: "Cameron" });
+});
+
+test("Context.from throws a VariableTypeUnsupportedError when given a function", () => {
+	assert.throws(() => Context.from({ toUpper: (v: string) => v.toUpperCase() }), {
+		name: "VariableTypeUnsupportedError",
+		message: `Variable "toUpper" has unsupported type: "function"`,
+	});
+});
+
+test("Context.from throws a VariableAlreadyExistsError when attempting to assign twice", () => {
+	const context = Context.from({ boss: "Cameron Howe" });
+
+	assert.throws(() => context.add("boss", { kind: ValueKind.STRING, value: "Donna Clark" }), {
+		name: "VariableAlreadyExistsError",
+		message: `Variable "boss" already exists`,
+	});
+});
+
+test("Context.from throws a VariableNotFoundError when attempting to get a variable which has not been set", () => {
+	const context = new Context();
+
+	assert.throws(() => context.get("boss"), {
+		name: "VariableNotFoundError",
+		message: `Variable "boss" not found`,
+	});
 });
