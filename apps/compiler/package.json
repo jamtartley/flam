@@ -7,10 +7,12 @@
 		"ci:build": "esbuild src/index.ts",
 		"ci:lint": "eslint ./src/**/*.ts",
 		"ci:test": "glob -c \"node --import tsx --no-warnings --test\" \"./src/**/*.test.ts\"",
+		"ci:smoke": "node --import tsx --no-warnings --test smoke.test.ts",
 		"ci:start": "node build/index.js",
 		"ci:typecheck": "tsc --noEmit",
 		"dev:start": "nodemon src/index.ts",
-		"dev:test": "glob -c \"nodemon --exec node --import tsx --no-warnings --test\" \"./src/**/*.test.ts\""
+		"dev:test": "glob -c \"nodemon --exec node --import tsx --no-warnings --test\" \"./src/**/*.test.ts\"",
+		"dev:smoke": "nodemon --exec node --import tsx --no-warnings --test smoke.test.ts"
 	},
 	"keywords": [],
 	"author": "",

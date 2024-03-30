@@ -1,0 +1,3 @@
+{! for name in company.employees -> pluck("reports") -> pluck("name") !}
+{= name -> split(" ") -> reverse -> join(".") -> to_lower =}
+{! rof !}

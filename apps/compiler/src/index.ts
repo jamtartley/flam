@@ -1,23 +1,15 @@
+import { PathLike, readFileSync } from "node:fs";
 import { Compiler } from "./compiler";
 import { Context } from "./context";
 import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 
-const tokenizer = new Tokenizer(`
-{! for name in company.employees -> pluck("reports") -> pluck("name") !}
-{= name -> split("-") -> join(".") =}
-{! rof !}
-`).tokenize();
+export function compile(path: PathLike, ctx: Record<string, unknown>): string {
+	const file = readFileSync(path).toString();
+	const tokenizer = new Tokenizer(file).tokenize();
+	const parser = new Parser(tokenizer.tokens).parse();
+	const context = Context.from(ctx);
+	const compiler = new Compiler(parser.rootNode, context);
 
-const parser = new Parser(tokenizer.tokens).parse();
-const context = Context.from({
-	company: {
-		employees: [
-			{ name: "Cameron", title: "cto", reports: [{ name: "Yo-yo" }, { name: "Tom" }] },
-			{ name: "Donna", title: "ceo", reports: [{ name: "John" }, { name: "Cameron" }] },
-		],
-	},
-});
-const compiler = new Compiler(parser.rootNode, context);
-
-console.log(compiler.compile());
+	return compiler.compile();
+}

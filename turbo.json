@@ -1,15 +1,17 @@
 {
 	"$schema": "https://turbo.build/schema.json",
-	"globalDependencies": ["**/.env.*local"],
 	"pipeline": {
 		"ci:build": {
-			"dependsOn": ["^ci:build", "ci:typecheck"],
-			"outputs": [".next"]
+			"dependsOn": ["^ci:build", "ci:typecheck"]
 		},
 		"ci:lint": {},
 		"ci:test": {},
+		"ci:smoke": {},
 		"ci:typecheck": {},
 		"ci:start": {},
+		"dev:smoke": {
+			"cache": false
+		},
 		"dev:start": {
 			"cache": false,
 			"persistent": true
