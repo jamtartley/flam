@@ -1,10 +1,9 @@
 import assert from "node:assert";
 import test from "node:test";
 import { compile } from "./src";
-import { PathLike } from "node:fs";
 import path from "node:path";
 
-function filePathFor(relative: string): PathLike {
+function filePathFor(relative: string): string {
 	return path.join(process.cwd(), "examples", relative);
 }
 
@@ -14,7 +13,11 @@ test("/complex_filters.flam", () => {
 		company: {
 			employees: [
 				{ name: "Cameron", title: "cto", reports: [{ name: "Tom Rendon" }] },
-				{ name: "Donna", title: "ceo", reports: [{ name: "John Bosworth" }, { name: "Cameron Howe" }] },
+				{
+					name: "Donna",
+					title: "ceo",
+					reports: [{ name: "John Bosworth" }, { name: "Cameron Howe" }],
+				},
 			],
 		},
 	});

@@ -326,7 +326,10 @@ export class Parser {
 				statement = this.#parseInclude();
 				break;
 			default:
-				throw new UnexpectedTokenError(["KEYWORD_IF", "KEYWORD_FOR", "KEYWORD_MAKE"], this.#current().kind);
+				throw new UnexpectedTokenError(
+					["KEYWORD_IF", "KEYWORD_FOR", "KEYWORD_MAKE"],
+					this.#current().kind
+				);
 		}
 
 		return statement;

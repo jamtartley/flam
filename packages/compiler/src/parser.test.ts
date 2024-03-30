@@ -53,7 +53,10 @@ test("Parser emits an AstLiteralNumberNode inside template", () => {
 	];
 	const parser = new Parser(tokens).parse();
 
-	assert.deepEqual(parser.rootNode.statements[0], new AstTemplateNode(new AstLiteralNumberNode(42)));
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstTemplateNode(new AstLiteralNumberNode(42))
+	);
 });
 
 test("Parser emits an AstBinaryExpressionNode for a simple addition inside template", () => {
@@ -340,7 +343,10 @@ test("Parser handles an include statement without scope creation", () => {
 	];
 	const parser = new Parser(tokens).parse();
 
-	assert.deepEqual(parser.rootNode.statements[0], new AstIncludeNode(new AstLiteralStringNode("child")));
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstIncludeNode(new AstLiteralStringNode("child"))
+	);
 });
 
 test("Parser handles an include statement with named scope creation", () => {
@@ -403,7 +409,10 @@ test("Parser handles an include statement with a scope with inferred value", () 
 
 	assert.deepEqual(
 		parser.rootNode.statements[0],
-		new AstIncludeNode(new AstLiteralStringNode("child"), new Map([["people", new AstLiteralIdentifierNode("people")]]))
+		new AstIncludeNode(
+			new AstLiteralStringNode("child"),
+			new Map([["people", new AstLiteralIdentifierNode("people")]])
+		)
 	);
 });
 
@@ -503,7 +512,9 @@ test("Parser handles a for loop where the collection is an object member", () =>
 		parser.rootNode.statements[0],
 		new AstForNode(
 			new AstLiteralIdentifierNode("x"),
-			new AstMemberAccessNode(new AstLiteralIdentifierNode("y"), [new AstLiteralStringNode("values")]),
+			new AstMemberAccessNode(new AstLiteralIdentifierNode("y"), [
+				new AstLiteralStringNode("values"),
+			]),
 			[new AstRawTextNode("Hello, world!"), new AstRawTextNode("I am here")]
 		)
 	);
@@ -594,7 +605,9 @@ test("Parser handles a single level member access", () => {
 	assert.deepEqual(
 		parser.rootNode.statements[0],
 		new AstTemplateNode(
-			new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [new AstLiteralStringNode("name")])
+			new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [
+				new AstLiteralStringNode("name"),
+			])
 		)
 	);
 });
