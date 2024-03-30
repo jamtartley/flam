@@ -8,6 +8,7 @@ import {
 	AstFilterNode,
 	AstForNode,
 	AstIfNode,
+	AstIncludeNode,
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstLiteralStringNode,
@@ -326,6 +327,19 @@ test("Parser handles a make with an expression value", () => {
 		parser.rootNode.statements[0],
 		new AstMakeNode(new AstLiteralIdentifierNode("x"), new AstLiteralNumberNode(10))
 	);
+});
+
+test("Parser handle an include statement", () => {
+	const tokens: Token[] = [
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_INCLUDE" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "child" }),
+		new Token({ kind: "CONTROL_END" }),
+		new Token({ kind: "EOF" }),
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(parser.rootNode.statements[0], new AstIncludeNode(new AstLiteralIdentifierNode("child")));
 });
 
 test("Parser handles a filter outside of a pipe chain", () => {

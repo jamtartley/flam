@@ -24,6 +24,7 @@ export type TokenKind =
 	| "OP_LTE"
 	| "KEYWORD_MAKE"
 	| "KEYWORD_BECOME"
+	| "KEYWORD_INCLUDE"
 	| "KEYWORD_FOR"
 	| "KEYWORD_IN"
 	| "KEYWORD_ROF"
@@ -35,6 +36,7 @@ export type TokenKind =
 const keywords = new Map<string, TokenKind>([
 	["make", "KEYWORD_MAKE"],
 	["become", "KEYWORD_BECOME"],
+	["include", "KEYWORD_INCLUDE"],
 	["for", "KEYWORD_FOR"],
 	["in", "KEYWORD_IN"],
 	["rof", "KEYWORD_ROF"],

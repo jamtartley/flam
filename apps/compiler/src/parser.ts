@@ -5,6 +5,7 @@ import {
 	AstFilterNode,
 	AstForNode,
 	AstIfNode,
+	AstIncludeNode,
 	AstLiteralIdentifierNode,
 	AstLiteralNumberNode,
 	AstLiteralStringNode,
@@ -277,6 +278,14 @@ export class Parser {
 		return new AstMakeNode(name, value);
 	}
 
+	#parseInclude(): AstIncludeNode {
+		this.#eat("KEYWORD_INCLUDE");
+		const name = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
+		this.#eat("CONTROL_END");
+
+		return new AstIncludeNode(name);
+	}
+
 	#parseControl(): AstStatementNode {
 		this.#eat("CONTROL_START");
 
@@ -291,6 +300,9 @@ export class Parser {
 				break;
 			case "KEYWORD_MAKE":
 				statement = this.#parseMake();
+				break;
+			case "KEYWORD_INCLUDE":
+				statement = this.#parseInclude();
 				break;
 			default:
 				throw new UnexpectedTokenError(["KEYWORD_IF", "KEYWORD_FOR", "KEYWORD_MAKE"], this.#current().kind);
