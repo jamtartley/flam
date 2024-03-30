@@ -2,7 +2,8 @@
 	"$schema": "https://turbo.build/schema.json",
 	"pipeline": {
 		"ci:build": {
-			"dependsOn": ["^ci:build", "ci:typecheck"]
+			"dependsOn": ["^ci:build"],
+			"outputs": ["dist/**"]
 		},
 		"ci:lint": {},
 		"ci:test": {},
