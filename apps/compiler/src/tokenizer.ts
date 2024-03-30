@@ -1,3 +1,5 @@
+import { PathLike } from "node:fs";
+
 export type TokenKind =
 	| "RAW"
 	| "LITERAL_IDENTIFIER"
@@ -50,6 +52,8 @@ type TokenFlag = "BINARY_OPERATOR" | "NONE";
 type TokenSite = {
 	line: number;
 	col: number;
+	lineContents: string;
+	filePath: string;
 };
 
 export class Token {
@@ -61,15 +65,24 @@ export class Token {
 	constructor({ kind, value, site }: { kind: TokenKind; value?: string; site?: TokenSite }) {
 		this.kind = kind;
 		this.value = value || "";
-		this.site = site || { line: -1, col: -1 };
+		this.site = site || { line: -1, col: -1, lineContents: "", filePath: "" };
 		this.flag = this.kind.startsWith("OP_") ? "BINARY_OPERATOR" : "NONE";
 	}
 }
 
 class UnexpectedCharacterError extends Error {
 	constructor(character: string, site: TokenSite) {
-		// @TODO: Print the line of input where the error occurred
-		super(`Unexpected character: "${character}" at line ${site.line}, column ${site.col}`);
+		const arrow = `${"-".repeat(site.col - 1)}^`;
+		super(
+			`
+Error tokenizing file: ${site.filePath}
+
+Unexpected character: "${character}" at line ${site.line}, column ${site.col}
+
+${site.lineContents}
+${arrow}
+`
+		);
 
 		this.name = "UnexpectedCharacterError";
 	}
@@ -92,13 +105,32 @@ const IDENTIFIER_END = /[^a-zA-Z0-9_]/;
 
 export class Tokenizer {
 	#fileContents: string;
+	#filePath: string;
+	readonly #lines: string[];
 	#index: number = 0;
-	#site: TokenSite = { line: 1, col: 1 };
+	#site: TokenSite;
 
 	public tokens: Token[] = [];
 
-	constructor(fileContents: string) {
+	constructor(fileContents: string, filePath: string | PathLike) {
 		this.#fileContents = fileContents;
+		this.#filePath = filePath.toString();
+		this.#lines = fileContents.split("\n");
+		this.#site = {
+			line: 1,
+			col: 1,
+			lineContents: this.#lines[0]!,
+			filePath: this.#filePath,
+		};
+	}
+
+	#createSite(line: number, col: number): TokenSite {
+		return {
+			line,
+			col,
+			filePath: this.#filePath,
+			lineContents: this.#lines[line - 1]!,
+		};
 	}
 
 	#current(length: number = 1): string {
@@ -121,10 +153,10 @@ export class Tokenizer {
 		const newLine = this.#current() === "\n";
 
 		this.#index = Math.min(this.#index + length, this.#fileContents.length);
-		this.#site = {
-			line: newLine ? this.#site.line + 1 : this.#site.line,
-			col: newLine ? 1 : this.#site.col + length,
-		};
+		this.#site = this.#createSite(
+			newLine ? this.#site.line + 1 : this.#site.line,
+			newLine ? 1 : this.#site.col + length
+		);
 	}
 
 	#advanceUntil(terminator: () => boolean): void {
