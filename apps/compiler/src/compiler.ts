@@ -168,7 +168,9 @@ export class Compiler {
 		const contents = fs.readFileSync(filePath).toString();
 		const tokenizer = new Tokenizer(contents, filePath).tokenize();
 		const parser = new Parser(tokenizer.tokens).parse();
-		const scope = new Scope(this.#scope);
+		const scope = includeNode.scopeFrom
+			? Scope.from({ ...this.#scope.variables.get(includeNode.scopeFrom?.name) })
+			: new Scope({ parent: this.#scope });
 		const compiler = new Compiler(parser.rootNode, scope, filePath);
 
 		return { kind: ValueKind.STRING, value: compiler.compile() };
