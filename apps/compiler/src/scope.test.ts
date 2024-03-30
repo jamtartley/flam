@@ -1,42 +1,42 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { Context } from "./context";
+import { Scope } from "./scope";
 import { ValueKind } from "./compiler";
 
-test("Context.from converts a simple string", () => {
+test("Scope.from converts a simple string", () => {
 	const input = {
 		name: "Cameron",
 	};
-	const context = Context.from(input);
+	const scope = Scope.from(input);
 
-	assert.deepEqual(context.variables.get("name"), { kind: ValueKind.STRING, value: "Cameron" });
+	assert.deepEqual(scope.variables.get("name"), { kind: ValueKind.STRING, value: "Cameron" });
 });
 
-test("Context.from converts a simple number", () => {
+test("Scope.from converts a simple number", () => {
 	const input = {
 		age: 42,
 	};
-	const context = Context.from(input);
+	const scope = Scope.from(input);
 
-	assert.deepEqual(context.variables.get("age"), { kind: ValueKind.NUMBER, value: 42 });
+	assert.deepEqual(scope.variables.get("age"), { kind: ValueKind.NUMBER, value: 42 });
 });
 
-test("Context.from converts a simple boolean", () => {
+test("Scope.from converts a simple boolean", () => {
 	const input = {
 		isCorrect: false,
 	};
-	const context = Context.from(input);
+	const scope = Scope.from(input);
 
-	assert.deepEqual(context.variables.get("isCorrect"), { kind: ValueKind.BOOLEAN, value: false });
+	assert.deepEqual(scope.variables.get("isCorrect"), { kind: ValueKind.BOOLEAN, value: false });
 });
 
-test("Context.from converts an array of strings", () => {
+test("Scope.from converts an array of strings", () => {
 	const input = {
 		names: ["Cameron", "Donna", "Gordon"],
 	};
-	const context = Context.from(input);
+	const scope = Scope.from(input);
 
-	assert.deepEqual(context.variables.get("names"), {
+	assert.deepEqual(scope.variables.get("names"), {
 		kind: ValueKind.ARRAY,
 		value: [
 			{ kind: ValueKind.STRING, value: "Cameron" },
@@ -49,16 +49,16 @@ test("Context.from converts an array of strings", () => {
 	});
 });
 
-test("Context.from converts a nested array of items", () => {
+test("Scope.from converts a nested array of items", () => {
 	const input = {
 		ageGroups: [
 			[0, 10],
 			[11, 20],
 		],
 	};
-	const context = Context.from(input);
+	const scope = Scope.from(input);
 
-	assert.deepEqual(context.variables.get("ageGroups"), {
+	assert.deepEqual(scope.variables.get("ageGroups"), {
 		kind: ValueKind.ARRAY,
 		value: [
 			{
@@ -79,16 +79,16 @@ test("Context.from converts a nested array of items", () => {
 	});
 });
 
-test("Context.from converts a flat object", () => {
+test("Scope.from converts a flat object", () => {
 	const input = {
 		company: {
 			name: "Mutiny",
 			established: 1983,
 		},
 	};
-	const context = Context.from(input);
+	const scope = Scope.from(input);
 
-	assert.deepEqual(context.variables.get("company"), {
+	assert.deepEqual(scope.variables.get("company"), {
 		kind: ValueKind.OBJECT,
 		value: {
 			name: { kind: ValueKind.STRING, value: "Mutiny" },
@@ -97,7 +97,7 @@ test("Context.from converts a flat object", () => {
 	});
 });
 
-test("Context.from converts an object with nested array", () => {
+test("Scope.from converts an object with nested array", () => {
 	const input = {
 		company: {
 			name: "Mutiny",
@@ -105,9 +105,9 @@ test("Context.from converts an object with nested array", () => {
 			founders: ["Cameron", "Donna"],
 		},
 	};
-	const context = Context.from(input);
+	const scope = Scope.from(input);
 
-	assert.deepEqual(context.variables.get("company"), {
+	assert.deepEqual(scope.variables.get("company"), {
 		kind: ValueKind.OBJECT,
 		value: {
 			name: { kind: ValueKind.STRING, value: "Mutiny" },
@@ -123,7 +123,7 @@ test("Context.from converts an object with nested array", () => {
 	});
 });
 
-test("Context.from converts an object with nested objects", () => {
+test("Scope.from converts an object with nested objects", () => {
 	const input = {
 		company: {
 			name: "Mutiny",
@@ -138,9 +138,9 @@ test("Context.from converts an object with nested objects", () => {
 			],
 		},
 	};
-	const context = Context.from(input);
+	const scope = Scope.from(input);
 
-	assert.deepEqual(context.variables.get("company"), {
+	assert.deepEqual(scope.variables.get("company"), {
 		kind: ValueKind.OBJECT,
 		value: {
 			name: { kind: ValueKind.STRING, value: "Mutiny" },
@@ -175,49 +175,49 @@ test("Context.from converts an object with nested objects", () => {
 	});
 });
 
-test("Context.findContextForVariable finds a variable in the current context", () => {
-	const context = Context.from({ name: "Cameron" });
-	const found = context.findContextForVariable("name");
+test("Scope.findScopeForVariable finds a variable in the current scope", () => {
+	const scope = Scope.from({ name: "Cameron" });
+	const found = scope.findScopeForVariable("name");
 
-	assert.strictEqual(found, context);
+	assert.strictEqual(found, scope);
 });
 
-test("Context.findContextForVariable finds a variable in the parent context", () => {
-	const parent = Context.from({ name: "Cameron" });
-	const child = new Context({ parent });
-	const found = child.findContextForVariable("name");
+test("Scope.findScopeForVariable finds a variable in the parent scope", () => {
+	const parent = Scope.from({ name: "Cameron" });
+	const child = new Scope({ parent });
+	const found = child.findScopeForVariable("name");
 
 	assert.strictEqual(found, parent);
 });
 
-test("Context.get finds a variable in the parent context", () => {
-	const parent = Context.from({ name: "Cameron" });
-	const child = new Context({ parent });
+test("Scope.get finds a variable in the parent scope", () => {
+	const parent = Scope.from({ name: "Cameron" });
+	const child = new Scope({ parent });
 	const found = child.get("name");
 
 	assert.deepEqual(found, { kind: ValueKind.STRING, value: "Cameron" });
 });
 
-test("Context.from throws a VariableTypeUnsupportedError when given a function", () => {
-	assert.throws(() => Context.from({ toUpper: (v: string) => v.toUpperCase() }), {
+test("Scope.from throws a VariableTypeUnsupportedError when given a function", () => {
+	assert.throws(() => Scope.from({ toUpper: (v: string) => v.toUpperCase() }), {
 		name: "VariableTypeUnsupportedError",
 		message: `Variable "toUpper" has unsupported type: "function"`,
 	});
 });
 
-test("Context.from throws a VariableAlreadyExistsError when attempting to assign twice", () => {
-	const context = Context.from({ boss: "Cameron Howe" });
+test("Scope.from throws a VariableAlreadyExistsError when attempting to assign twice", () => {
+	const scope = Scope.from({ boss: "Cameron Howe" });
 
-	assert.throws(() => context.add("boss", { kind: ValueKind.STRING, value: "Donna Clark" }), {
+	assert.throws(() => scope.add("boss", { kind: ValueKind.STRING, value: "Donna Clark" }), {
 		name: "VariableAlreadyExistsError",
 		message: `Variable "boss" already exists`,
 	});
 });
 
-test("Context.from throws a VariableNotFoundError when attempting to get a variable which has not been set", () => {
-	const context = new Context();
+test("Scope.from throws a VariableNotFoundError when attempting to get a variable which has not been set", () => {
+	const scope = new Scope();
 
-	assert.throws(() => context.get("boss"), {
+	assert.throws(() => scope.get("boss"), {
 		name: "VariableNotFoundError",
 		message: `Variable "boss" not found`,
 	});

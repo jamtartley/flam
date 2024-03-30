@@ -1,7 +1,7 @@
 import { ArrayValue, RuntimeValue, ValueKind } from "./compiler";
 
-type ContextConstructor = {
-	parent?: Context;
+type ScopeConstructor = {
+	parent?: Scope;
 	variables?: Map<string, RuntimeValue>;
 };
 
@@ -57,11 +57,11 @@ function convertToRuntimeValue(name: string, input: unknown): RuntimeValue {
 	throw new VariableTypeUnsupportedError(name, input);
 }
 
-export class Context {
+export class Scope {
 	public variables: Map<string, RuntimeValue> = new Map();
-	#parent?: Context;
+	#parent?: Scope;
 
-	constructor(init?: ContextConstructor) {
+	constructor(init?: ScopeConstructor) {
 		if (init) {
 			const { parent, variables } = init;
 
@@ -70,13 +70,13 @@ export class Context {
 		}
 	}
 
-	static from(obj: object): Context {
+	static from(obj: object): Scope {
 		const variables = new Map(Object.entries(obj).map(([name, value]) => [name, convertToRuntimeValue(name, value)]));
-		const context = new Context({
+		const scope = new Scope({
 			variables,
 		});
 
-		return context;
+		return scope;
 	}
 
 	add(name: string, value: RuntimeValue): RuntimeValue {
@@ -90,16 +90,16 @@ export class Context {
 	}
 
 	get(name: string): RuntimeValue {
-		const context = this.findContextForVariable(name);
+		const scope = this.findScopeForVariable(name);
 
-		return context.variables.get(name)!;
+		return scope.variables.get(name)!;
 	}
 
 	delete(name: string): void {
 		this.variables.delete(name);
 	}
 
-	findContextForVariable(name: string): Context {
+	findScopeForVariable(name: string): Scope {
 		if (this.variables.has(name)) {
 			return this;
 		}
@@ -108,6 +108,6 @@ export class Context {
 			throw new VariableNotFoundError(name);
 		}
 
-		return this.#parent.findContextForVariable(name);
+		return this.#parent.findScopeForVariable(name);
 	}
 }
