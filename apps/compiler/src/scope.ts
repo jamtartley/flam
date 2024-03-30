@@ -21,14 +21,6 @@ export class VariableNotFoundError extends Error {
 	}
 }
 
-export class VariableAlreadyExistsError extends Error {
-	constructor(name: string) {
-		super(`Variable "${name}" already exists`);
-
-		this.name = "VariableAlreadyExistsError";
-	}
-}
-
 function convertToRuntimeValue(name: string, input: unknown): RuntimeValue {
 	if (typeof input === "string") {
 		return { kind: ValueKind.STRING, value: input };
@@ -80,10 +72,6 @@ export class Scope {
 	}
 
 	add(name: string, value: RuntimeValue): RuntimeValue {
-		if (this.variables.has(name)) {
-			throw new VariableAlreadyExistsError(name);
-		}
-
 		this.variables.set(name, value);
 
 		return value;

@@ -1,2 +1,3 @@
-I am the initial file
-{! include "./if.flam" !}
+I am going to include if.flam:
+{! make name become "Gordon" !}
+{! include "./if.flam", name: name !}

@@ -47,7 +47,7 @@ test("/include.flam", () => {
 	const filePath = filePathFor("include.flam");
 	const output = compile(filePath, {});
 
-	assert.equal(output, "Hello, world!\n");
+	assert.equal(output, "I am going to include if.flam:\n\n\nHello, Gordon!\n\n\n");
 });
 
 test("/if.flam when the condition is true", () => {

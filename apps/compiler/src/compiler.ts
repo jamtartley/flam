@@ -168,10 +168,15 @@ export class Compiler {
 		const contents = fs.readFileSync(filePath).toString();
 		const tokenizer = new Tokenizer(contents, filePath).tokenize();
 		const parser = new Parser(tokenizer.tokens).parse();
-		const scope = includeNode.scopeFrom
-			? Scope.from({ ...this.#scope.variables.get(includeNode.scopeFrom?.name) })
-			: new Scope({ parent: this.#scope });
-		const compiler = new Compiler(parser.rootNode, scope, filePath);
+
+		const namedScope = includeNode.namedScope;
+		const newScope = new Scope({ parent: this.#scope, variables: this.#scope.variables });
+
+		for (const [key, value] of (namedScope || new Map()).entries()) {
+			newScope.add(key, this.#evaluate(value));
+		}
+
+		const compiler = new Compiler(parser.rootNode, newScope, filePath);
 
 		return { kind: ValueKind.STRING, value: compiler.compile() };
 	}
