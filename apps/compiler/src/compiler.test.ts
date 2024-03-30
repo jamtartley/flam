@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { Compiler, ValueKind } from "./compiler";
+import { Compiler } from "./compiler";
 import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,

@@ -5,6 +5,7 @@ export type NodeType =
 	| "AstIfNode"
 	| "AstForNode"
 	| "AstMakeNode"
+	| "AstIncludeNode"
 	| "AstRawTextNode"
 	| "AstLiteralStringNode"
 	| "AstLiteralNumberNode"
@@ -112,6 +113,16 @@ export class AstMakeNode extends AstStatementNode {
 
 		this.name = name;
 		this.value = value;
+	}
+}
+
+export class AstIncludeNode extends AstStatementNode {
+	public readonly name: AstLiteralIdentifierNode;
+
+	constructor(name: AstLiteralIdentifierNode) {
+		super("AstIncludeNode");
+
+		this.name = name;
 	}
 }
 
