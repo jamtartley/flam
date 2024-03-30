@@ -31,10 +31,15 @@ lint:
   script:
     - pnpm ci:lint
 
-tests:
+unit_tests:
   <<: *quality
   script:
     - pnpm ci:test
+
+smoke_tests:
+  <<: *quality
+  script:
+    - pnpm ci:smoke
 
 build:
   <<: *quality
