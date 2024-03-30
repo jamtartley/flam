@@ -5,7 +5,7 @@ module.exports = {
 	endOfLine: "lf",
 	htmlWhitespaceSensitivity: "css",
 	plugins: [],
-	printWidth: 120,
+	printWidth: 100,
 	proseWrap: "preserve",
 	requirePragma: false,
 	semi: true,
