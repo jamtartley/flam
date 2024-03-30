@@ -2,9 +2,9 @@ import * as t from "io-ts";
 import { PathReporter } from "io-ts/PathReporter";
 import { ArrayValue, ObjectValue, RuntimeValue, ValueKind } from "./compiler";
 
-export const filters = new Map<string, { func: Function; validators: t.Type<any>[] }>();
+export const filters = new Map<string, { func: Function; validators?: t.Type<any>[] }>();
 
-function register(validators: t.Type<any>[]) {
+function register(validators?: t.Type<any>[]) {
 	return function (_: any, name: string, descriptor: PropertyDescriptor) {
 		filters.set(name, { func: descriptor.value, validators });
 	};
@@ -12,35 +12,50 @@ function register(validators: t.Type<any>[]) {
 
 export class NumberFilters {
 	@register([t.number])
-	static double(x: number) {
-		return x * 2;
+	static double(num: number) {
+		return num * 2;
 	}
 }
 
 export class StringFilters {
 	@register([t.string])
-	static lowercase(x: string) {
-		return x.toLowerCase();
+	static to_lower(str: string): string {
+		return str.toLowerCase();
 	}
 
 	@register([t.string])
-	static uppercase(x: string) {
-		return x.toUpperCase();
+	static to_upper(str: string): string {
+		return str.toUpperCase();
 	}
 
 	@register([t.string])
-	static titlecase(x: string) {
-		return x.replace(/\b\w/g, (c) => c.toUpperCase());
+	static to_title(str: string): string {
+		return str.replace(/\b\w/g, (c) => c.toUpperCase());
+	}
+
+	@register([t.any])
+	static to_string(str: any): string {
+		return str.toString();
+	}
+
+	@register([t.string, t.string])
+	static replace(str: string, search: string, replace: string): string {
+		return str.replaceAll(search, replace);
 	}
 
 	@register([t.array(t.string), t.string])
-	static join(x: string[], y: string) {
-		return x.join(y);
+	static join(str: string[], separator: string): string {
+		return str.join(separator);
+	}
+
+	@register([t.string, t.string])
+	static split(str: string, separator: string): string[] {
+		return str.split(separator);
 	}
 
 	@register([t.string])
-	static flammify(x: string) {
-		return x
+	static flammify(str: string): string {
+		return str
 			.split(/\s+/)
 			.map((word) => {
 				if (word.length <= 4) {
@@ -55,23 +70,35 @@ export class StringFilters {
 
 export class ArrayFilters {
 	@register([t.array(t.UnknownRecord), t.string])
-	static pluck<T extends Record<string, any>>(x: T[], key: keyof T): T[keyof T][] {
-		return x.map((obj) => obj[key]).flat();
-	}
-
-	@register([t.array(t.string)])
-	static alphabetize(x: string[]) {
-		return x.sort();
+	static pluck<T extends Record<string, any>>(arr: T[], key: keyof T): T[keyof T][] {
+		return arr.map((obj) => obj[key]).flat();
 	}
 
 	@register([t.array(t.any)])
-	static reverse(x: any[]) {
-		return x.reverse();
+	static alphabetize<T>(arr: T[]): T[] {
+		return arr.sort();
 	}
 
 	@register([t.array(t.any)])
-	static count(x: any[]) {
-		return x.length;
+	static reverse<T>(arr: T[]): T[] {
+		return arr.reverse();
+	}
+
+	@register([t.array(t.any)])
+	static count<T>(arr: T[]): number {
+		return arr.length;
+	}
+}
+
+export class DateFilters {
+	@register()
+	static now(): number {
+		return Date.now();
+	}
+
+	@register()
+	static today(): string {
+		return new Date().toDateString();
 	}
 }
 
@@ -116,6 +143,10 @@ export function applyFilter(name: string, args: RuntimeValue[]) {
 
 	const rawArgs = args.map(runtimeToRaw);
 	const { func, validators } = filters.get(name)!;
+
+	if (!validators) {
+		return rawIntoRuntime(func(...rawArgs));
+	}
 
 	for (let i = 0; i < validators.length; i++) {
 		const validator = validators[i]!;

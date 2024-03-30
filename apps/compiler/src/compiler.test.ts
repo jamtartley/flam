@@ -116,7 +116,7 @@ test("Compiler outputs value of string filter application", () => {
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstTemplateNode(
-				new AstFilterNode(new AstLiteralIdentifierNode("uppercase"), [new AstLiteralStringNode("hello, world!")])
+				new AstFilterNode(new AstLiteralIdentifierNode("to_upper"), [new AstLiteralStringNode("hello, world!")])
 			),
 		]),
 		context
