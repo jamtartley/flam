@@ -1,5 +1,5 @@
 {
-	"name": "@flam/compiler",
+	"name": "@flam/cli",
 	"version": "0.0.1",
 	"main": "dist/index.js",
 	"exports": {
@@ -9,12 +9,10 @@
 		"ci:build": "tsc --build tsconfig.build.json",
 		"ci:lint": "eslint ./src/**/*.ts",
 		"ci:test": "glob -c \"node --import tsx --no-warnings --test\" \"./src/**/*.test.ts\"",
-		"ci:smoke": "node --import tsx --no-warnings --test smoke.test.ts",
 		"ci:start": "node dist/index.js",
 		"ci:typecheck": "tsc --noEmit",
 		"dev:start": "nodemon src/index.ts",
-		"dev:test": "glob -c \"nodemon --exec node --import tsx --no-warnings --test\" \"./src/**/*.test.ts\"",
-		"dev:smoke": "nodemon --exec node --import tsx --no-warnings --test smoke.test.ts"
+		"dev:test": "glob -c \"nodemon --exec node --import tsx --no-warnings --test\" \"./src/**/*.test.ts\""
 	},
 	"license": "MIT",
 	"devDependencies": {
@@ -29,6 +27,7 @@
 		"typescript": "^5.3.3"
 	},
 	"dependencies": {
-		"io-ts": "^2.2.21"
+		"@flam/compiler": "workspace:*",
+		"commander": "^12.0.0"
 	}
 }
