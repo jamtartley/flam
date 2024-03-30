@@ -16,11 +16,11 @@ import {
 	AstRootNode,
 	AstTemplateNode,
 } from "./ast";
-import { Context } from "./context";
+import { Scope } from "./scope";
 
 test("Compiler outputs simple literal number", () => {
-	const context = new Context();
-	const compiler = new Compiler(new AstRootNode([new AstTemplateNode(new AstLiteralNumberNode(42))]), context);
+	const scope = new Scope();
+	const compiler = new Compiler(new AstRootNode([new AstTemplateNode(new AstLiteralNumberNode(42))]), scope);
 
 	const output = compiler.compile();
 
@@ -28,7 +28,7 @@ test("Compiler outputs simple literal number", () => {
 });
 
 test("Compiler outputs value of 42 + 21", () => {
-	const context = new Context();
+	const scope = new Scope();
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstTemplateNode(
@@ -39,7 +39,7 @@ test("Compiler outputs value of 42 + 21", () => {
 				)
 			),
 		]),
-		context
+		scope
 	);
 
 	const output = compiler.compile();
@@ -48,7 +48,7 @@ test("Compiler outputs value of 42 + 21", () => {
 });
 
 test("Compiler outputs value of 42 * (21 + 7)", () => {
-	const context = new Context();
+	const scope = new Scope();
 	const rootNode = new AstRootNode([
 		new AstTemplateNode(
 			new AstBinaryExpressionNode(
@@ -62,7 +62,7 @@ test("Compiler outputs value of 42 * (21 + 7)", () => {
 			)
 		),
 	]);
-	const compiler = new Compiler(rootNode, context);
+	const compiler = new Compiler(rootNode, scope);
 
 	const output = compiler.compile();
 
@@ -70,7 +70,7 @@ test("Compiler outputs value of 42 * (21 + 7)", () => {
 });
 
 test("Compiler outputs value of 42 + (10 / (4 - 1))", () => {
-	const context = new Context();
+	const scope = new Scope();
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstTemplateNode(
@@ -89,7 +89,7 @@ test("Compiler outputs value of 42 + (10 / (4 - 1))", () => {
 				)
 			),
 		]),
-		context
+		scope
 	);
 
 	const output = compiler.compile();
@@ -98,12 +98,12 @@ test("Compiler outputs value of 42 + (10 / (4 - 1))", () => {
 });
 
 test("Compiler outputs value of number filter application", () => {
-	const context = new Context();
+	const scope = new Scope();
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstTemplateNode(new AstFilterNode(new AstLiteralIdentifierNode("double"), [new AstLiteralNumberNode(21)])),
 		]),
-		context
+		scope
 	);
 
 	const output = compiler.compile();
@@ -112,14 +112,14 @@ test("Compiler outputs value of number filter application", () => {
 });
 
 test("Compiler outputs value of string filter application", () => {
-	const context = new Context();
+	const scope = new Scope();
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstTemplateNode(
 				new AstFilterNode(new AstLiteralIdentifierNode("to_upper"), [new AstLiteralStringNode("hello, world!")])
 			),
 		]),
-		context
+		scope
 	);
 
 	const output = compiler.compile();
@@ -128,7 +128,7 @@ test("Compiler outputs value of string filter application", () => {
 });
 
 test("Compiler outputs success clause in if statement", () => {
-	const context = Context.from({ x: "Hello, world!" });
+	const scope = Scope.from({ x: "Hello, world!" });
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstIfNode(
@@ -141,7 +141,7 @@ test("Compiler outputs success clause in if statement", () => {
 				[]
 			),
 		]),
-		context
+		scope
 	);
 
 	const output = compiler.compile();
@@ -150,7 +150,7 @@ test("Compiler outputs success clause in if statement", () => {
 });
 
 test("Compiler outputs multiple success clauses in if statement", () => {
-	const context = Context.from({ x: "Hello, world!" });
+	const scope = Scope.from({ x: "Hello, world!" });
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstIfNode(
@@ -163,7 +163,7 @@ test("Compiler outputs multiple success clauses in if statement", () => {
 				[]
 			),
 		]),
-		context
+		scope
 	);
 
 	const output = compiler.compile();
@@ -172,7 +172,7 @@ test("Compiler outputs multiple success clauses in if statement", () => {
 });
 
 test("Compiler outputs failure clause in if statement", () => {
-	const context = Context.from({ x: "Hello, world!" });
+	const scope = Scope.from({ x: "Hello, world!" });
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstIfNode(
@@ -185,7 +185,7 @@ test("Compiler outputs failure clause in if statement", () => {
 				[new AstRawTextNode("In failure clause!")]
 			),
 		]),
-		context
+		scope
 	);
 
 	const output = compiler.compile();
@@ -194,7 +194,7 @@ test("Compiler outputs failure clause in if statement", () => {
 });
 
 test("Compiler outputs nested clauses in if statement", () => {
-	const context = Context.from({ x: "Hello, world!", y: 2 });
+	const scope = Scope.from({ x: "Hello, world!", y: 2 });
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstIfNode(
@@ -218,7 +218,7 @@ test("Compiler outputs nested clauses in if statement", () => {
 				[]
 			),
 		]),
-		context
+		scope
 	);
 
 	const output = compiler.compile();
@@ -227,14 +227,14 @@ test("Compiler outputs nested clauses in if statement", () => {
 });
 
 test("Compiler outputs for loop", () => {
-	const context = Context.from({ y: [1, 2, 3] });
+	const scope = Scope.from({ y: [1, 2, 3] });
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstForNode(new AstLiteralIdentifierNode("x"), new AstLiteralIdentifierNode("y"), [
 				new AstTemplateNode(new AstLiteralIdentifierNode("x")),
 			]),
 		]),
-		context
+		scope
 	);
 
 	const output = compiler.compile();
@@ -243,7 +243,7 @@ test("Compiler outputs for loop", () => {
 });
 
 test("Compiler outputs for loop when collection is nested member", () => {
-	const context = Context.from({
+	const scope = Scope.from({
 		company: {
 			name: "Mutiny",
 			employees: [
@@ -264,7 +264,7 @@ test("Compiler outputs for loop when collection is nested member", () => {
 				]
 			),
 		]),
-		context
+		scope
 	);
 
 	const output = compiler.compile();
@@ -273,7 +273,7 @@ test("Compiler outputs for loop when collection is nested member", () => {
 });
 
 test("Compiler outputs for loop when collection is a filter expression", () => {
-	const context = Context.from({
+	const scope = Scope.from({
 		company: {
 			employees: [
 				{ name: "Cameron", title: "cto", reports: [{ name: "Yo-yo" }, { name: "Tom" }] },
@@ -295,7 +295,7 @@ test("Compiler outputs for loop when collection is a filter expression", () => {
 				[new AstTemplateNode(new AstLiteralIdentifierNode("name"))]
 			),
 		]),
-		context
+		scope
 	);
 
 	const output = compiler.compile();
@@ -304,13 +304,13 @@ test("Compiler outputs for loop when collection is a filter expression", () => {
 });
 
 test("Compiler assigns variable when encountering a make node", () => {
-	const context = new Context();
+	const scope = new Scope();
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstMakeNode(new AstLiteralIdentifierNode("x"), new AstLiteralNumberNode(42)),
 			new AstTemplateNode(new AstLiteralIdentifierNode("x")),
 		]),
-		context
+		scope
 	);
 
 	const output = compiler.compile();
@@ -319,7 +319,7 @@ test("Compiler assigns variable when encountering a make node", () => {
 });
 
 test("Compiler assigns variable when encountering a make node with complex expression", () => {
-	const context = new Context();
+	const scope = new Scope();
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstMakeNode(
@@ -333,7 +333,7 @@ test("Compiler assigns variable when encountering a make node with complex expre
 			),
 			new AstTemplateNode(new AstLiteralIdentifierNode("x")),
 		]),
-		context
+		scope
 	);
 
 	const output = compiler.compile();
@@ -342,7 +342,7 @@ test("Compiler assigns variable when encountering a make node with complex expre
 });
 
 test("Compiler outputs nested for loop", () => {
-	const context = Context.from({ z: [1, 2, 3] });
+	const scope = Scope.from({ z: [1, 2, 3] });
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstForNode(new AstLiteralIdentifierNode("x"), new AstLiteralIdentifierNode("z"), [
@@ -353,7 +353,7 @@ test("Compiler outputs nested for loop", () => {
 				]),
 			]),
 		]),
-		context
+		scope
 	);
 
 	const output = compiler.compile();
@@ -374,7 +374,7 @@ test("Compiler outputs nested for loop", () => {
 });
 
 test("Compiler outputs member access", () => {
-	const context = Context.from({
+	const scope = Scope.from({
 		company: {
 			name: "Mutiny",
 		},
@@ -385,7 +385,7 @@ test("Compiler outputs member access", () => {
 				new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [new AstLiteralStringNode("name")])
 			),
 		]),
-		context
+		scope
 	);
 
 	const output = compiler.compile();
@@ -394,7 +394,7 @@ test("Compiler outputs member access", () => {
 });
 
 test("Compiler outputs nested member access", () => {
-	const context = Context.from({
+	const scope = Scope.from({
 		company: {
 			name: "Mutiny",
 			founders: {
@@ -411,7 +411,7 @@ test("Compiler outputs nested member access", () => {
 				])
 			),
 		]),
-		context
+		scope
 	);
 
 	const output = compiler.compile();

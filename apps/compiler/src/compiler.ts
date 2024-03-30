@@ -15,7 +15,7 @@ import {
 	AstTemplateNode,
 } from "./ast";
 import { applyFilter, filters } from "./filters";
-import { Context } from "./context";
+import { Scope } from "./scope";
 
 export enum ValueKind {
 	NUMBER,
@@ -91,11 +91,11 @@ function isNullValue(value: RuntimeValue): value is NullValue {
 
 export class Compiler {
 	readonly #rootNode: AstRootNode;
-	readonly #context: Context;
+	readonly #scope: Scope;
 
-	constructor(rootNode: AstRootNode, context: Context) {
+	constructor(rootNode: AstRootNode, scope: Scope) {
 		this.#rootNode = rootNode;
-		this.#context = context;
+		this.#scope = scope;
 	}
 
 	#evaluateRootNode(root: AstRootNode): StringValue {
@@ -262,13 +262,13 @@ export class Compiler {
 		const items: RuntimeValue[] = [];
 
 		for (const item of collection.value) {
-			this.#context.add(forNode.variable.name, item);
+			this.#scope.add(forNode.variable.name, item);
 
 			for (const statement of forNode.body) {
 				items.push(this.#evaluate(statement));
 			}
 
-			this.#context.delete(forNode.variable.name);
+			this.#scope.delete(forNode.variable.name);
 		}
 
 		return {
@@ -280,7 +280,7 @@ export class Compiler {
 	#evaluateMakeNode(makeNode: AstMakeNode): NullValue {
 		const value = this.#evaluate(makeNode.value);
 
-		this.#context.add(makeNode.name.name, value);
+		this.#scope.add(makeNode.name.name, value);
 
 		return { kind: ValueKind.NULL, value: null };
 	}
@@ -302,7 +302,7 @@ export class Compiler {
 			return this.#evaluateFilterNode(new AstFilterNode(identifier, []));
 		}
 
-		const variable = this.#context.get(identifier.name);
+		const variable = this.#scope.get(identifier.name);
 		return variable;
 	}
 
