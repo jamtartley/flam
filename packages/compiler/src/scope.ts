@@ -63,7 +63,9 @@ export class Scope {
 	}
 
 	static from(obj: object): Scope {
-		const variables = new Map(Object.entries(obj).map(([name, value]) => [name, convertToRuntimeValue(name, value)]));
+		const variables = new Map(
+			Object.entries(obj).map(([name, value]) => [name, convertToRuntimeValue(name, value)])
+		);
 		const scope = new Scope({
 			variables,
 		});

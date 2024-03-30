@@ -81,7 +81,11 @@ export class AstIfNode extends AstStatementNode {
 	public readonly success: AstStatementNode[];
 	public readonly failure: AstStatementNode[];
 
-	constructor(condition: AstExpressionNode, success: AstStatementNode[], failure: AstStatementNode[]) {
+	constructor(
+		condition: AstExpressionNode,
+		success: AstStatementNode[],
+		failure: AstStatementNode[]
+	) {
 		super("AstIfNode");
 
 		this.condition = condition;
@@ -95,7 +99,11 @@ export class AstForNode extends AstStatementNode {
 	public readonly collection: AstExpressionNode;
 	public readonly body: AstStatementNode[];
 
-	constructor(variable: AstLiteralIdentifierNode, collection: AstExpressionNode, body: AstStatementNode[]) {
+	constructor(
+		variable: AstLiteralIdentifierNode,
+		collection: AstExpressionNode,
+		body: AstStatementNode[]
+	) {
 		super("AstForNode");
 
 		this.variable = variable;

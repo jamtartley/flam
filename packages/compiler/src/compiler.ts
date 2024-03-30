@@ -137,7 +137,9 @@ export class Compiler {
 	}
 
 	#evaluateFilterNode(filter: AstFilterNode): RuntimeValue {
-		const args: RuntimeValue[] = filter.args.map((arg) => this.#evaluate(arg)).filter(isRuntimeValue);
+		const args: RuntimeValue[] = filter.args
+			.map((arg) => this.#evaluate(arg))
+			.filter(isRuntimeValue);
 
 		return applyFilter(filter.name.name, args);
 	}

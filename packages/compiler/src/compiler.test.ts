@@ -20,7 +20,11 @@ import { Scope } from "./scope";
 
 test("Compiler outputs simple literal number", () => {
 	const scope = new Scope();
-	const compiler = new Compiler(new AstRootNode([new AstTemplateNode(new AstLiteralNumberNode(42))]), scope, "");
+	const compiler = new Compiler(
+		new AstRootNode([new AstTemplateNode(new AstLiteralNumberNode(42))]),
+		scope,
+		""
+	);
 
 	const output = compiler.compile();
 
@@ -103,7 +107,9 @@ test("Compiler outputs value of number filter application", () => {
 	const scope = new Scope();
 	const compiler = new Compiler(
 		new AstRootNode([
-			new AstTemplateNode(new AstFilterNode(new AstLiteralIdentifierNode("double"), [new AstLiteralNumberNode(21)])),
+			new AstTemplateNode(
+				new AstFilterNode(new AstLiteralIdentifierNode("double"), [new AstLiteralNumberNode(21)])
+			),
 		]),
 		scope,
 		""
@@ -119,7 +125,9 @@ test("Compiler outputs value of string filter application", () => {
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstTemplateNode(
-				new AstFilterNode(new AstLiteralIdentifierNode("to_upper"), [new AstLiteralStringNode("hello, world!")])
+				new AstFilterNode(new AstLiteralIdentifierNode("to_upper"), [
+					new AstLiteralStringNode("hello, world!"),
+				])
 			),
 		]),
 		scope,
@@ -265,10 +273,14 @@ test("Compiler outputs for loop when collection is nested member", () => {
 		new AstRootNode([
 			new AstForNode(
 				new AstLiteralIdentifierNode("employee"),
-				new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [new AstLiteralStringNode("employees")]),
+				new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [
+					new AstLiteralStringNode("employees"),
+				]),
 				[
 					new AstTemplateNode(
-						new AstMemberAccessNode(new AstLiteralIdentifierNode("employee"), [new AstLiteralStringNode("name")])
+						new AstMemberAccessNode(new AstLiteralIdentifierNode("employee"), [
+							new AstLiteralStringNode("name"),
+						])
 					),
 				]
 			),
@@ -297,7 +309,9 @@ test("Compiler outputs for loop when collection is a filter expression", () => {
 				new AstLiteralIdentifierNode("name"),
 				new AstFilterNode(new AstLiteralIdentifierNode("pluck"), [
 					new AstFilterNode(new AstLiteralIdentifierNode("pluck"), [
-						new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [new AstLiteralStringNode("employees")]),
+						new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [
+							new AstLiteralStringNode("employees"),
+						]),
 						new AstLiteralStringNode("reports"),
 					]),
 					new AstLiteralStringNode("name"),
@@ -396,7 +410,9 @@ test("Compiler outputs member access", () => {
 	const compiler = new Compiler(
 		new AstRootNode([
 			new AstTemplateNode(
-				new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [new AstLiteralStringNode("name")])
+				new AstMemberAccessNode(new AstLiteralIdentifierNode("company"), [
+					new AstLiteralStringNode("name"),
+				])
 			),
 		]),
 		scope,

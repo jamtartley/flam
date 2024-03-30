@@ -6,13 +6,7 @@ import { Tokenizer } from "./tokenizer";
 import path from "node:path";
 import { Command } from "commander";
 
-type AcceptableScopeAtom = string | number | boolean;
-type AcceptableScope =
-	| AcceptableScopeAtom
-	| AcceptableScopeAtom[]
-	| Record<string, AcceptableScopeAtom>;
-
-export function compile(absPath: string, ctx: Record<string, AcceptableScope>): string {
+export function compile(absPath: string, ctx: Record<string, unknown>): string {
 	const file = readFileSync(absPath).toString();
 	const tokenizer = new Tokenizer(file, absPath).tokenize();
 	const parser = new Parser(tokenizer.tokens).parse();
