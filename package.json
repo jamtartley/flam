@@ -9,6 +9,7 @@
 		"ci:build": "turbo run ci:build",
 		"ci:format": "prettier --check \"**/*.{json,ts,tsx,md}\"",
 		"ci:lint": "turbo run ci:lint",
+		"ci:publish": "changeset version && changeset publish",
 		"ci:smoke": "turbo run ci:smoke",
 		"ci:start": "turbo run ci:start",
 		"ci:test": "turbo run ci:test",
@@ -22,6 +23,7 @@
 		"prepare": "husky"
 	},
 	"devDependencies": {
+		"@changesets/cli": "^2.27.1",
 		"@commitlint/cli": "^19.2.1",
 		"@commitlint/config-conventional": "^19.1.0",
 		"@commitlint/prompt": "^19.2.0",
