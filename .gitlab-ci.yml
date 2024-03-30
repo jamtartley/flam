@@ -11,7 +11,7 @@ stages:
     paths:
       - .pnpm-store
   before_script:
-    - apk add --no-cache libc6-compat && apk update
+    - apk add --no-cache libc6-compat git && apk update
     - npm install -g turbo@1.13.0 pnpm@8.15.2
     - pnpm config set store-dir .pnpm-store
     - pnpm install

@@ -4,6 +4,9 @@
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
+	"bin": {
+		"flam": "./dist/index.js"
+	},
 	"exports": {
 		".": "./src/index.ts"
 	},
