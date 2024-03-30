@@ -93,16 +93,14 @@ export class Parser {
 	#parseExpressionFactor(): AstExpressionNode {
 		switch (this.#current().kind) {
 			case "LITERAL_IDENTIFIER": {
-				const initial = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
-				const memberChain: AstLiteralStringNode[] = [];
-
-				while (this.#current().kind === "PERIOD") {
-					this.#eat("PERIOD");
-
-					memberChain.push(new AstLiteralStringNode(this.#eat("LITERAL_IDENTIFIER").value));
+				switch (this.#peek()?.kind) {
+					case "L_PAREN":
+						return this.#parseFilter();
+					case "PERIOD":
+						return this.#parseMemberAccess();
+					default:
+						return new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
 				}
-
-				return memberChain.length > 0 ? new AstMemberAccessNode(initial, memberChain) : initial;
 			}
 			case "LITERAL_STRING": {
 				const str = this.#eat("LITERAL_STRING");
@@ -149,29 +147,47 @@ export class Parser {
 		return left;
 	}
 
+	#parseFilter(): AstFilterNode {
+		const filterName = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
+		const filterNode = new AstFilterNode(filterName, []);
+
+		if (this.#current().kind === "L_PAREN") {
+			this.#eat("L_PAREN");
+
+			while (this.#current().kind !== "R_PAREN") {
+				const arg = this.#parseExpressionFactor();
+				filterNode.args.push(arg);
+
+				if (this.#current().kind === "COMMA") {
+					this.#eat("COMMA");
+				}
+			}
+
+			this.#eat("R_PAREN");
+		}
+
+		return filterNode;
+	}
+
+	#parseMemberAccess(): AstMemberAccessNode {
+		const initial = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
+		const memberChain: AstLiteralStringNode[] = [];
+
+		while (this.#current().kind === "PERIOD") {
+			this.#eat("PERIOD");
+
+			memberChain.push(new AstLiteralStringNode(this.#eat("LITERAL_IDENTIFIER").value));
+		}
+
+		return new AstMemberAccessNode(initial, memberChain);
+	}
+
 	#parseExpression(): AstExpressionNode {
 		let base = this.#parseBinaryExpression(this.#parseExpressionFactor(), 0);
 
 		while (this.#current().kind === "PIPE") {
 			this.#eat("PIPE");
-
-			const filterName = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
-			const filterNode = new AstFilterNode(filterName, []);
-
-			if (this.#current().kind === "L_PAREN") {
-				this.#eat("L_PAREN");
-
-				while (this.#current().kind !== "R_PAREN") {
-					const arg = this.#parseExpressionFactor();
-					filterNode.args.push(arg);
-
-					if (this.#current().kind === "COMMA") {
-						this.#eat("COMMA");
-					}
-				}
-
-				this.#eat("R_PAREN");
-			}
+			const filterNode = this.#parseFilter();
 
 			filterNode.args.unshift(base);
 			base = filterNode;

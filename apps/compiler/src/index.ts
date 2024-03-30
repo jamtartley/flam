@@ -5,7 +5,7 @@ import { Tokenizer } from "./tokenizer";
 
 const tokenizer = new Tokenizer(`
 {! for name in company.employees -> pluck("reports") -> pluck("name") !}
-{= name =}
+{= name -> split("-") -> join(".") =}
 {! rof !}
 `).tokenize();
 

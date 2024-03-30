@@ -328,6 +328,23 @@ test("Parser handles a make with an expression value", () => {
 	);
 });
 
+test("Parser handles a filter outside of a pipe chain", () => {
+	const tokens: Token[] = [
+		new Token({ kind: "TEMPLATE_START" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "now" }),
+		new Token({ kind: "L_PAREN" }),
+		new Token({ kind: "R_PAREN" }),
+		new Token({ kind: "TEMPLATE_END" }),
+		new Token({ kind: "EOF" }),
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstTemplateNode(new AstFilterNode(new AstLiteralIdentifierNode("now"), []))
+	);
+});
+
 test("Parser handles a for loop", () => {
 	const tokens: Token[] = [
 		new Token({ kind: "CONTROL_START" }),
