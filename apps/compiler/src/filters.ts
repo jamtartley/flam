@@ -54,14 +54,14 @@ export class StringFilters {
 	}
 
 	@register([t.string])
-	static flammify(str: string): string {
+	static to_flam(str: string): string {
 		return str
 			.split(/\s+/)
 			.map((word) => {
 				if (word.length <= 4) {
 					return "flam".slice(0, word.length);
 				} else {
-					return "fl" + "a".repeat(word.length - 2) + "m";
+					return "fl" + "a".repeat(word.length - 3) + "m";
 				}
 			})
 			.join(" ");
@@ -75,6 +75,11 @@ export class ArrayFilters {
 	}
 
 	@register([t.array(t.any)])
+	static sort<T>(arr: T[]): T[] {
+		return arr.sort();
+	}
+
+	@register([t.array(t.string)])
 	static alphabetize<T>(arr: T[]): T[] {
 		return arr.sort();
 	}
