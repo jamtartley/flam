@@ -152,7 +152,7 @@ export class Compiler {
 		for (const propertyRuntime of memberAccess.properties) {
 			const prop = propertyRuntime.value;
 
-			if (isObjectValue(object) && object.value.hasOwnProperty(prop)) {
+			if (isObjectValue(object) && prop in object.value) {
 				object = object.value[prop]!;
 			} else {
 				throw new Error(`Property "${prop}" not found on object`);

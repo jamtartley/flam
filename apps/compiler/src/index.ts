@@ -15,5 +15,3 @@ export function compile(filePath: PathLike, ctx: Record<string, unknown>): strin
 
 	return compiler.compile();
 }
-
-console.log(compile(path.join("examples", "include.flam"), {}));

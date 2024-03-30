@@ -1,0 +1,24 @@
+{
+	"name": "@flam/esbuild-config",
+	"version": "0.0.0",
+	"private": true,
+	"main": "src/index.ts",
+	"types": "src/index.ts",
+	"scripts": {
+		"ci:lint": "eslint ./src/**/*.ts",
+		"ci:typecheck": "tsc --noEmit",
+		"common:clean": "rm -rf .turbo && rm -rf node_modules",
+		"dev:lint": "eslint --fix ./src/**/*.ts"
+	},
+	"dependencies": {
+		"esbuild": "^0.16.17"
+	},
+	"devDependencies": {
+		"@flam/typescript-config": "workspace:*",
+		"@flam/eslint-config": "workspace:*",
+		"@types/node": "^20.11.30",
+		"esbuild-register": "^3.4.2",
+		"eslint": "^8.57.0",
+		"typescript": "^5.3.3"
+	}
+}
