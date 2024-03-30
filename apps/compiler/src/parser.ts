@@ -342,9 +342,10 @@ export class Parser {
 
 	#parseNode(): AstStatementNode | null {
 		switch (this.#current().kind) {
-			case "RAW":
+			case "RAW": {
 				const value = new AstRawTextNode(this.#eat("RAW").value);
 				return value;
+			}
 			case "TEMPLATE_START":
 				return this.#parseTemplate();
 			case "CONTROL_START":

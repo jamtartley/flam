@@ -4,7 +4,7 @@
 	"description": "",
 	"main": "dist/index.js",
 	"scripts": {
-		"ci:build": "esbuild src/index.ts",
+		"ci:build": "node --require esbuild-register ./build.ts",
 		"ci:lint": "eslint ./src/**/*.ts",
 		"ci:test": "glob -c \"node --import tsx --no-warnings --test\" \"./src/**/*.test.ts\"",
 		"ci:smoke": "node --import tsx --no-warnings --test smoke.test.ts",
@@ -18,8 +18,12 @@
 	"author": "",
 	"license": "ISC",
 	"devDependencies": {
+		"@flam/esbuild-config": "workspace:*",
+		"@flam/eslint-config": "workspace:*",
+		"@flam/typescript-config": "workspace:*",
 		"@types/node": "^20.11.30",
 		"esbuild": "^0.20.2",
+		"esbuild-register": "^3.4.2",
 		"eslint": "^8.57.0",
 		"glob": "^10.3.10",
 		"nodemon": "^3.1.0",

@@ -322,12 +322,12 @@ export class Tokenizer {
 					if (this.#next() === "=") {
 						this.#append("OP_EQ", site);
 						this.#advance(2);
-						continue;
 					} else if (this.#next() === "!") {
 						this.#append("OP_NE", site);
 						this.#advance(2);
-						continue;
 					}
+
+					continue;
 				case '"':
 					this.#tokenizeString();
 					continue;
