@@ -1,9 +1,0 @@
-{
-	"extends": "@flam/typescript-config/base.json",
-	"include": ["src"],
-	"compilerOptions": {
-		"declaration": true,
-		"noEmit": false,
-		"outDir": "dist"
-	}
-}

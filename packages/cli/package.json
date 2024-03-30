@@ -1,12 +1,14 @@
 {
 	"name": "@flam/cli",
 	"version": "0.0.1",
-	"main": "dist/index.js",
+	"main": "./dist/index.js",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.ts",
 	"exports": {
 		".": "./src/index.ts"
 	},
 	"scripts": {
-		"ci:build": "tsc --build tsconfig.build.json",
+		"ci:build": "tsup src/index.ts --format cjs,esm --dts",
 		"ci:lint": "eslint ./src/**/*.ts",
 		"ci:test": "glob -c \"node --import tsx --no-warnings --test\" \"./src/**/*.test.ts\"",
 		"ci:start": "node dist/index.js",
@@ -23,6 +25,7 @@
 		"glob": "^10.3.10",
 		"nodemon": "^3.1.0",
 		"ts-node": "^10.9.2",
+		"tsup": "^8.0.2",
 		"tsx": "^4.7.1",
 		"typescript": "^5.3.3"
 	},
