@@ -13,6 +13,7 @@ export type TokenKind =
 	| "R_PAREN"
 	| "PERIOD"
 	| "COMMA"
+	| "COLON"
 	| "PIPE"
 	| "OP_EQ"
 	| "OP_NE"
@@ -291,6 +292,10 @@ export class Tokenizer {
 					continue;
 				case ",":
 					this.#append("COMMA", site);
+					this.#advance();
+					continue;
+				case ":":
+					this.#append("COLON", site);
 					this.#advance();
 					continue;
 				case ">":

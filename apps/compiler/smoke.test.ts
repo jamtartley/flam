@@ -43,6 +43,13 @@ test("/hello.flam", () => {
 	assert.equal(output, "Hello, world!\n");
 });
 
+test("/include.flam", () => {
+	const filePath = filePathFor("include.flam");
+	const output = compile(filePath, {});
+
+	assert.equal(output, "Hello, world!\n");
+});
+
 test("/if.flam when the condition is true", () => {
 	const filePath = filePathFor("if.flam");
 	const output = compile(filePath, { name: "Gordon" });

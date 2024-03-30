@@ -281,9 +281,24 @@ export class Parser {
 	#parseInclude(): AstIncludeNode {
 		this.#eat("KEYWORD_INCLUDE");
 		const name = new AstLiteralStringNode(this.#eat("LITERAL_STRING").value);
+		let namedScope: Map<string, AstExpressionNode> | undefined;
+
+		while (this.#current().kind === "COMMA") {
+			this.#eat("COMMA");
+			const key = this.#eat("LITERAL_IDENTIFIER").value;
+			this.#eat("COLON");
+			const value = this.#parseExpression();
+
+			if (!namedScope) {
+				namedScope = new Map<string, AstExpressionNode>();
+			}
+
+			namedScope.set(key, value);
+		}
+
 		this.#eat("CONTROL_END");
 
-		return new AstIncludeNode(name);
+		return new AstIncludeNode(name, namedScope);
 	}
 
 	#parseControl(): AstStatementNode {

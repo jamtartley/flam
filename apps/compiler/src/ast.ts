@@ -118,11 +118,13 @@ export class AstMakeNode extends AstStatementNode {
 
 export class AstIncludeNode extends AstStatementNode {
 	public readonly name: AstLiteralStringNode;
+	public readonly namedScope?: Map<string, AstExpressionNode> = new Map();
 
-	constructor(name: AstLiteralStringNode) {
+	constructor(name: AstLiteralStringNode, namedScope?: Map<string, AstExpressionNode>) {
 		super("AstIncludeNode");
 
 		this.name = name;
+		this.namedScope = namedScope;
 	}
 }
 

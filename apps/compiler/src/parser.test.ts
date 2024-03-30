@@ -5,6 +5,7 @@ import { Parser } from "./parser";
 import {
 	AstBinaryExpressionNode,
 	AstBinaryOperatorNode,
+	AstExpressionNode,
 	AstFilterNode,
 	AstForNode,
 	AstIfNode,
@@ -329,7 +330,7 @@ test("Parser handles a make with an expression value", () => {
 	);
 });
 
-test("Parser handle an include statement", () => {
+test("Parser handles an include statement without scope creation", () => {
 	const tokens: Token[] = [
 		new Token({ kind: "CONTROL_START" }),
 		new Token({ kind: "KEYWORD_INCLUDE" }),
@@ -340,6 +341,82 @@ test("Parser handle an include statement", () => {
 	const parser = new Parser(tokens).parse();
 
 	assert.deepEqual(parser.rootNode.statements[0], new AstIncludeNode(new AstLiteralStringNode("child")));
+});
+
+test("Parser handles an include statement with scope creation", () => {
+	const tokens: Token[] = [
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_INCLUDE" }),
+		new Token({ kind: "LITERAL_STRING", value: "child" }),
+		new Token({ kind: "COMMA" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "employees" }),
+		new Token({ kind: "COLON" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "employees" }),
+		new Token({ kind: "CONTROL_END" }),
+		new Token({ kind: "EOF" }),
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstIncludeNode(
+			new AstLiteralStringNode("child"),
+			new Map([["employees", new AstLiteralIdentifierNode("employees")]])
+		)
+	);
+});
+
+test("Parser handles an include statement with a scope with mismatching key/value", () => {
+	const tokens: Token[] = [
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_INCLUDE" }),
+		new Token({ kind: "LITERAL_STRING", value: "child" }),
+		new Token({ kind: "COMMA" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "people" }),
+		new Token({ kind: "COLON" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "employees" }),
+		new Token({ kind: "CONTROL_END" }),
+		new Token({ kind: "EOF" }),
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstIncludeNode(
+			new AstLiteralStringNode("child"),
+			new Map([["people", new AstLiteralIdentifierNode("employees")]])
+		)
+	);
+});
+
+test("Parser handles an include statement with multiple scope values", () => {
+	const tokens: Token[] = [
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_INCLUDE" }),
+		new Token({ kind: "LITERAL_STRING", value: "child" }),
+		new Token({ kind: "COMMA" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "employees" }),
+		new Token({ kind: "COLON" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "employees" }),
+		new Token({ kind: "COMMA" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "boss" }),
+		new Token({ kind: "COLON" }),
+		new Token({ kind: "LITERAL_STRING", value: "Cameron Howe" }),
+		new Token({ kind: "CONTROL_END" }),
+		new Token({ kind: "EOF" }),
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstIncludeNode(
+			new AstLiteralStringNode("child"),
+			new Map<string, AstExpressionNode>([
+				["employees", new AstLiteralIdentifierNode("employees")],
+				["boss", new AstLiteralStringNode("Cameron Howe")],
+			])
+		)
+	);
 });
 
 test("Parser handles a filter outside of a pipe chain", () => {
