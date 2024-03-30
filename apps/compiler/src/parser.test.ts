@@ -343,7 +343,7 @@ test("Parser handles an include statement without scope creation", () => {
 	assert.deepEqual(parser.rootNode.statements[0], new AstIncludeNode(new AstLiteralStringNode("child")));
 });
 
-test("Parser handles an include statement with scope creation", () => {
+test("Parser handles an include statement with named scope creation", () => {
 	const tokens: Token[] = [
 		new Token({ kind: "CONTROL_START" }),
 		new Token({ kind: "KEYWORD_INCLUDE" }),
@@ -386,6 +386,24 @@ test("Parser handles an include statement with a scope with mismatching key/valu
 			new AstLiteralStringNode("child"),
 			new Map([["people", new AstLiteralIdentifierNode("employees")]])
 		)
+	);
+});
+
+test("Parser handles an include statement with a scope with inferred value", () => {
+	const tokens: Token[] = [
+		new Token({ kind: "CONTROL_START" }),
+		new Token({ kind: "KEYWORD_INCLUDE" }),
+		new Token({ kind: "LITERAL_STRING", value: "child" }),
+		new Token({ kind: "COMMA" }),
+		new Token({ kind: "LITERAL_IDENTIFIER", value: "people" }),
+		new Token({ kind: "CONTROL_END" }),
+		new Token({ kind: "EOF" }),
+	];
+	const parser = new Parser(tokens).parse();
+
+	assert.deepEqual(
+		parser.rootNode.statements[0],
+		new AstIncludeNode(new AstLiteralStringNode("child"), new Map([["people", new AstLiteralIdentifierNode("people")]]))
 	);
 });
 

@@ -284,14 +284,20 @@ export class Parser {
 		let namedScope: Map<string, AstExpressionNode> | undefined;
 
 		while (this.#current().kind === "COMMA") {
-			this.#eat("COMMA");
-			const key = this.#eat("LITERAL_IDENTIFIER").value;
-			this.#eat("COLON");
-			const value = this.#parseExpression();
-
 			if (!namedScope) {
 				namedScope = new Map<string, AstExpressionNode>();
 			}
+
+			this.#eat("COMMA");
+			const key = this.#eat("LITERAL_IDENTIFIER").value;
+
+			if (this.#current().kind !== "COLON") {
+				namedScope.set(key, new AstLiteralIdentifierNode(key));
+				continue;
+			}
+
+			this.#eat("COLON");
+			const value = this.#parseExpression();
 
 			namedScope.set(key, value);
 		}

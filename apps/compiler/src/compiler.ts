@@ -164,6 +164,7 @@ export class Compiler {
 
 	#evaluateIncludeNode(includeNode: AstIncludeNode): StringValue {
 		const name = this.#evaluateLiteralStringNode(includeNode.name);
+		// @FEATURE: Infer file extension as .flam if not provided
 		const filePath = path.join(path.dirname(this.#filePath), name.value);
 		const contents = fs.readFileSync(filePath).toString();
 		const tokenizer = new Tokenizer(contents, filePath).tokenize();
