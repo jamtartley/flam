@@ -280,7 +280,7 @@ export class Parser {
 
 	#parseInclude(): AstIncludeNode {
 		this.#eat("KEYWORD_INCLUDE");
-		const name = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
+		const name = new AstLiteralStringNode(this.#eat("LITERAL_STRING").value);
 		this.#eat("CONTROL_END");
 
 		return new AstIncludeNode(name);
