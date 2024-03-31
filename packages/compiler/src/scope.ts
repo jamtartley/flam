@@ -82,22 +82,18 @@ export class Scope {
 	get(name: string): RuntimeValue {
 		const scope = this.findScopeForVariable(name);
 
-		return scope.variables.get(name)!;
+		return scope?.variables.get(name) || { kind: ValueKind.NULL, value: null };
 	}
 
 	delete(name: string): void {
 		this.variables.delete(name);
 	}
 
-	findScopeForVariable(name: string): Scope {
+	findScopeForVariable(name: string): Scope | undefined {
 		if (this.variables.has(name)) {
 			return this;
 		}
 
-		if (!this.#parent) {
-			throw new VariableNotFoundError(name);
-		}
-
-		return this.#parent.findScopeForVariable(name);
+		return this.#parent?.findScopeForVariable(name);
 	}
 }

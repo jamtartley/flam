@@ -82,6 +82,10 @@ function isBooleanValue(value: RuntimeValue): value is BooleanValue {
 	return value.kind === ValueKind.BOOLEAN;
 }
 
+function isNullValue(value: RuntimeValue): value is NullValue {
+	return value.kind === ValueKind.NULL;
+}
+
 function isArrayValue(value: RuntimeValue): value is ArrayValue {
 	return value.kind === ValueKind.ARRAY;
 }
