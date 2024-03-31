@@ -53,9 +53,9 @@ export class StringFilters {
 		return str.split(separator);
 	}
 
-	@register([t.string, t.string])
-	static concat(str1: string, str2: string): string {
-		return `${str1}${str2}`;
+	@register([t.string, t.any])
+	static concat(str1: string, ...str2: string[]): string {
+		return `${str1}${str2.join("")}`;
 	}
 
 	@register([t.string])
