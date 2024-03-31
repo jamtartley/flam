@@ -200,7 +200,7 @@ export class Parser {
 	#parseIf(): AstIfNode {
 		this.#eat("KEYWORD_IF");
 
-		const condition = this.#parseBinaryExpression(this.#parseExpressionFactor(), 0);
+		const condition = this.#parseExpression();
 
 		this.#eat("CONTROL_END");
 

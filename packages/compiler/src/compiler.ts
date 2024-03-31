@@ -161,7 +161,7 @@ export class Compiler {
 			if (isObjectValue(object) && prop in object.value) {
 				object = object.value[prop]!;
 			} else {
-				throw new Error(`Property "${prop}" not found on object`);
+				return { kind: ValueKind.NULL, value: null };
 			}
 		}
 
