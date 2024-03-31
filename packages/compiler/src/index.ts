@@ -13,3 +13,5 @@ export function compile(absPath: string, ctx: Record<string, unknown>): string {
 
 	return compiler.compile();
 }
+
+console.log(compile("examples/hello.flam", {}));
