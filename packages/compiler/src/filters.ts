@@ -53,6 +53,11 @@ export class StringFilters {
 		return str.split(separator);
 	}
 
+	@register([t.string, t.string])
+	static concat(str1: string, str2: string): string {
+		return `${str1}${str2}`;
+	}
+
 	@register([t.string])
 	static to_flam(str: string): string {
 		return str
@@ -108,8 +113,8 @@ export class DateFilters {
 }
 
 export class ObjectFilters {
-	@register([t.string, t.UnknownRecord])
-	static has(key: string, obj: Record<string, unknown>): boolean {
+	@register([t.UnknownRecord, t.string])
+	static has(obj: Record<string, unknown>, key: string): boolean {
 		return key in obj;
 	}
 }

@@ -4,9 +4,6 @@
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
-	"exports": {
-		".": "./src/index.ts"
-	},
 	"scripts": {
 		"ci:build": "tsup src/index.ts --format cjs,esm --dts",
 		"ci:lint": "eslint ./src/**/*.ts",
