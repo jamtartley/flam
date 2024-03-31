@@ -107,6 +107,13 @@ export class DateFilters {
 	}
 }
 
+export class ObjectFilters {
+	@register([t.string, t.UnknownRecord])
+	static has(key: string, obj: Record<string, unknown>): boolean {
+		return key in obj;
+	}
+}
+
 function runtimeToRaw(value: any): any {
 	switch (value.kind) {
 		case ValueKind.NUMBER:

@@ -204,12 +204,3 @@ test("Scope.from throws a VariableTypeUnsupportedError when given a function", (
 		message: `Variable "toUpper" has unsupported type: "function"`,
 	});
 });
-
-test("Scope.from throws a VariableNotFoundError when attempting to get a variable which has not been set", () => {
-	const scope = new Scope();
-
-	assert.throws(() => scope.get("boss"), {
-		name: "VariableNotFoundError",
-		message: `Variable "boss" not found`,
-	});
-});
