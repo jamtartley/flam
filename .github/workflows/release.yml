@@ -25,9 +25,11 @@ jobs:
           run_install: false
       - uses: actions/setup-node@v4
         with:
-          node-version-file: .tool-versions
-          cache: "pnpm"
           cache-dependency-path: pnpm-lock.yaml
+          cache: "pnpm"
+          node-version-file: .tool-versions
+          registry-url: https://npm.pkg.github.com
+          scope: "@flam"
       - run: pnpm install
       - run: pnpm run build
       - run: pnpm run lint
