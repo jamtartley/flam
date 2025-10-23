@@ -1,0 +1,23 @@
+name: release
+
+on:
+  push:
+
+env:
+  FORCE_COLOR: 1
+  NODE_ENV: production
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+      - run: pnpm run build
+      - run: pnpm run lint
+      - run: pnpm run smoke
+      - run: pnpm run test
+      - run: pnpm run typecheck

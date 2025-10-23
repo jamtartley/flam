@@ -13,8 +13,8 @@
 		"dev:smoke": "nodemon --watch examples --ext flam,ts --watch smoke.test.ts --watch src --exec 'node --import tsx --test smoke.test.ts'",
 		"dev:test": "glob -c \"nodemon --exec node --import tsx --no-warnings --test\" \"./src/**/*.test.ts\"",
 		"lint": "eslint src/ --max-warnings 0",
-		"test": "glob -c \"node --import tsx --no-warnings --test\" \"./src/**/*.test.ts\"",
 		"smoke": "node --import tsx --test smoke.test.ts",
+		"test": "glob -c \"node --import tsx --no-warnings --test\" \"./src/**/*.test.ts\"",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
