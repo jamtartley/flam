@@ -2,19 +2,20 @@
 	"name": "@flam/compiler",
 	"version": "0.0.2",
 	"license": "MIT",
-	"main": "./dist/index.js",
-	"module": "./dist/index.mjs",
-	"types": "./dist/index.d.ts",
+	"packageManager": "pnpm@10.19.0",
+	"engines": {
+		"node": "24.10.0"
+	},
+	"exports": "./dist/index.js",
 	"scripts": {
-		"ci:build": "tsup src/index.ts --format cjs,esm --dts",
-		"ci:lint": "eslint src/ --max-warnings 0",
-		"ci:test": "glob -c \"node --import tsx --no-warnings --test\" \"./src/**/*.test.ts\"",
-		"ci:smoke": "node --import tsx --no-warnings --test smoke.test.ts",
-		"ci:start": "node dist/index.js",
-		"ci:typecheck": "tsc --noEmit",
-		"dev:start": "nodemon src/index.ts",
+		"build": "tsup src/index.ts --format cjs,esm --dts",
+		"dev": "concurrently --names 'SMOKE,TEST' --prefix-colors 'cyan,magenta' 'pnpm run dev:smoke' 'pnpm run dev:test'",
+		"dev:smoke": "nodemon --watch examples --ext flam,ts --watch smoke.test.ts --watch src --exec 'node --import tsx --test smoke.test.ts'",
 		"dev:test": "glob -c \"nodemon --exec node --import tsx --no-warnings --test\" \"./src/**/*.test.ts\"",
-		"dev:smoke": "node --test smoke.test.ts"
+		"lint": "eslint src/ --max-warnings 0",
+		"test": "glob -c \"node --import tsx --no-warnings --test\" \"./src/**/*.test.ts\"",
+		"smoke": "node --import tsx --test smoke.test.ts",
+		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
 		"io-ts": "^2.2.21"
@@ -30,6 +31,7 @@
 		"@typescript-eslint/eslint-plugin": "^8.42.0",
 		"@typescript-eslint/parser": "^8.42.0",
 		"@vercel/style-guide": "^5.2.0",
+		"concurrently": "^9.2.1",
 		"eslint": "^9.34.0",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-only-warn": "^1.1.0",
