@@ -247,7 +247,7 @@ export class Parser {
 		this.#eat("KEYWORD_FOR");
 		const variable = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
 		this.#eat("KEYWORD_IN");
-		let collection = this.#parseExpression();
+		const collection = this.#parseExpression();
 		this.#eat("CONTROL_END");
 
 		const body: AstStatementNode[] = [];
@@ -272,7 +272,7 @@ export class Parser {
 		this.#eat("KEYWORD_MAKE");
 		const name = new AstLiteralIdentifierNode(this.#eat("LITERAL_IDENTIFIER").value);
 		this.#eat("KEYWORD_BECOME");
-		let value = this.#parseExpression();
+		const value = this.#parseExpression();
 		this.#eat("CONTROL_END");
 
 		return new AstMakeNode(name, value);
@@ -326,10 +326,7 @@ export class Parser {
 				statement = this.#parseInclude();
 				break;
 			default:
-				throw new UnexpectedTokenError(
-					["KEYWORD_IF", "KEYWORD_FOR", "KEYWORD_MAKE"],
-					this.#current().kind
-				);
+				throw new UnexpectedTokenError(["KEYWORD_IF", "KEYWORD_FOR", "KEYWORD_MAKE"], this.#current().kind);
 		}
 
 		return statement;
@@ -337,7 +334,7 @@ export class Parser {
 
 	#parseTemplate(): AstTemplateNode {
 		this.#eat("TEMPLATE_START");
-		let expression = this.#parseExpression();
+		const expression = this.#parseExpression();
 		this.#eat("TEMPLATE_END");
 
 		return new AstTemplateNode(expression);

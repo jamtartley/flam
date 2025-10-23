@@ -1,1 +1,0 @@
-# `@flam/eslint-config`

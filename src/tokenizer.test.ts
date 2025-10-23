@@ -25,12 +25,7 @@ test("Tokenizer generates an EOF token", () => {
 test("Tokenizer generates valid template tokens", () => {
 	const tokenizer = new Tokenizer("{= name =}", "").tokenize();
 
-	expectTokenKinds(tokenizer.tokens, [
-		"TEMPLATE_START",
-		"LITERAL_IDENTIFIER",
-		"TEMPLATE_END",
-		"EOF",
-	]);
+	expectTokenKinds(tokenizer.tokens, ["TEMPLATE_START", "LITERAL_IDENTIFIER", "TEMPLATE_END", "EOF"]);
 });
 
 test("Tokenizer generates keyword tokens for known identifiers", () => {
@@ -50,14 +45,7 @@ test("Tokenizer generates keyword tokens for known identifiers", () => {
 test("Tokenizer generates both raw and valid template tokens", () => {
 	const tokenizer = new Tokenizer("Hello, {= name =}!", "").tokenize();
 
-	expectTokenKinds(tokenizer.tokens, [
-		"RAW",
-		"TEMPLATE_START",
-		"LITERAL_IDENTIFIER",
-		"TEMPLATE_END",
-		"RAW",
-		"EOF",
-	]);
+	expectTokenKinds(tokenizer.tokens, ["RAW", "TEMPLATE_START", "LITERAL_IDENTIFIER", "TEMPLATE_END", "RAW", "EOF"]);
 });
 
 test("Tokenizer generates no tokens for comments and advances", () => {
@@ -102,13 +90,7 @@ test("Tokenizer generates no tokens for comments embedded in control block", () 
 test("Tokenizer handles literal strings inside tags", () => {
 	const tokenizer = new Tokenizer('Hello, {= "Hello" =}', "").tokenize();
 
-	expectTokenKinds(tokenizer.tokens, [
-		"RAW",
-		"TEMPLATE_START",
-		"LITERAL_STRING",
-		"TEMPLATE_END",
-		"EOF",
-	]);
+	expectTokenKinds(tokenizer.tokens, ["RAW", "TEMPLATE_START", "LITERAL_STRING", "TEMPLATE_END", "EOF"]);
 });
 
 test("Tokenizer removes speech marks from literal string values", () => {
@@ -139,13 +121,7 @@ test("Tokenizer generates pipe token inside tags", () => {
 test("Tokenizer ignores pipe token outside tags", () => {
 	const tokenizer = new Tokenizer('"Hello" -> {= "world" =}', "").tokenize();
 
-	expectTokenKinds(tokenizer.tokens, [
-		"RAW",
-		"TEMPLATE_START",
-		"LITERAL_STRING",
-		"TEMPLATE_END",
-		"EOF",
-	]);
+	expectTokenKinds(tokenizer.tokens, ["RAW", "TEMPLATE_START", "LITERAL_STRING", "TEMPLATE_END", "EOF"]);
 });
 
 test("Tokenizer generates parens inside tags", () => {

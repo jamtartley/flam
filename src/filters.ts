@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-function-type */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import * as t from "io-ts";
 import { PathReporter } from "io-ts/PathReporter";
 import { ArrayValue, ObjectValue, RuntimeValue, ValueKind } from "./compiler";
@@ -129,10 +132,7 @@ function runtimeToRaw(value: any): any {
 			return (value as ArrayValue).value.map(runtimeToRaw);
 		case ValueKind.OBJECT:
 			return Object.fromEntries(
-				Object.entries((value as ObjectValue).value).map(([key, value]) => [
-					key,
-					runtimeToRaw(value),
-				])
+				Object.entries((value as ObjectValue).value).map(([key, value]) => [key, runtimeToRaw(value)])
 			);
 	}
 }
@@ -149,9 +149,7 @@ function rawIntoRuntime(value: any): RuntimeValue {
 	} else if (typeof value === "object") {
 		return {
 			kind: ValueKind.OBJECT,
-			value: Object.fromEntries(
-				Object.entries(value).map(([key, value]) => [key, rawIntoRuntime(value)])
-			),
+			value: Object.fromEntries(Object.entries(value).map(([key, value]) => [key, rawIntoRuntime(value)])),
 		};
 	}
 

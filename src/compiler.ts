@@ -82,10 +82,6 @@ function isBooleanValue(value: RuntimeValue): value is BooleanValue {
 	return value.kind === ValueKind.BOOLEAN;
 }
 
-function isNullValue(value: RuntimeValue): value is NullValue {
-	return value.kind === ValueKind.NULL;
-}
-
 function isArrayValue(value: RuntimeValue): value is ArrayValue {
 	return value.kind === ValueKind.ARRAY;
 }
@@ -141,9 +137,7 @@ export class Compiler {
 	}
 
 	#evaluateFilterNode(filter: AstFilterNode): RuntimeValue {
-		const args: RuntimeValue[] = filter.args
-			.map((arg) => this.#evaluate(arg))
-			.filter(isRuntimeValue);
+		const args: RuntimeValue[] = filter.args.map((arg) => this.#evaluate(arg)).filter(isRuntimeValue);
 
 		return applyFilter(filter.name.name, args);
 	}
