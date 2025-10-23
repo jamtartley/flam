@@ -1,6 +1,6 @@
 {
 	"name": "@jamtartley/flam",
-	"version": "0.0.3",
+	"version": "0.0.1",
 	"license": "MIT",
 	"packageManager": "pnpm@10.19.0",
 	"engines": {

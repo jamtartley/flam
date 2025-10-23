@@ -26,7 +26,7 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
           cache: "pnpm"
           node-version-file: .tool-versions
-          registry-url: https://npm.pkg.github.com
+          registry-url: https://registry.npmjs.org
           scope: "@jamtartley"
       - run: pnpm install
       - run: pnpm run build
@@ -34,6 +34,6 @@ jobs:
       - run: pnpm run smoke
       - run: pnpm run test
       - run: pnpm run typecheck
-      - run: pnpm publish
+      - run: pnpm publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
