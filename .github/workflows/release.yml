@@ -17,9 +17,7 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
         with:
           run_install: false
@@ -29,10 +27,13 @@ jobs:
           cache: "pnpm"
           node-version-file: .tool-versions
           registry-url: https://npm.pkg.github.com
-          scope: "@flam"
+          scope: "@jamtartley"
       - run: pnpm install
       - run: pnpm run build
       - run: pnpm run lint
       - run: pnpm run smoke
       - run: pnpm run test
       - run: pnpm run typecheck
+      - run: pnpm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,5 +1,5 @@
 {
-	"name": "@flam/compiler",
+	"name": "@jamtartley/flam",
 	"version": "0.0.2",
 	"license": "MIT",
 	"packageManager": "pnpm@10.19.0",
